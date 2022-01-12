@@ -14,6 +14,18 @@ L2
 
 `
 l:()
+p:()
+p:p,1.
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p2:|p
 m:0
 newL:()
 h1:beta*(h-1)
@@ -25,31 +37,46 @@ SES2:{[i]$[i<0;0;((power[(1-alpha);i])*(newL[(((#newL)-i)-1)]))+SES2[i-1]]}
 l:l,L1
 newL:L1
 m:l[0] /only appears on first time
-an:(power[(1-alpha); (#newL)])
+an:(1-alpha)*p2[0]
 ax:ax*an
-m:(alpha*(SES2[(#newL)-1]))+(an*m)
+m:(alpha*(sum (p2*newL)))+(an*m)
 predict:((m + h1 + a1) - ax)
 predict
 `
 "Add L2"
 l:l,L2
 newL:L2
-an:(power[(1-alpha); (#newL)])
+p2:{[x]p[((#newL)-x)-1]}[!#newL]
+an:(1-alpha)*p2[0]
 ax:ax*an
-m:(alpha*(SES2[(#newL)-1]))+(an*m)
+m:(alpha*(sum (p2*newL)))+(an*m)
 predict:(m + h1 + a1) - ax
 predict
 
 `
 l:()
-SES:{[i]$[i<0;0;((power[(1-alpha);i])*(l[(((#l)-i)-1)]))+SES[i-1]]}
+p:()
+p:p,1.
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p2:|p
 "Add L1, then forcast"
 l:l,L1
-predict:(alpha*(SES[(#l)-1])) + ((power[(1-alpha); (#l)])*(l[0])) + beta*(((h-1) + (1.%alpha)) - ((power[(1-alpha);#l])%alpha))
+predict:(alpha*(sum (p2*l))) + (((1-alpha)*p2[0])*(l[0])) + beta*(((h-1) + (1.%alpha)) - ((power[(1-alpha);#l])%alpha))
 predict
-
 `
 "Add L2, then forcast"
 l:l,L2
-predict:(alpha*(SES[(#l)-1])) + ((power[(1-alpha); (#l)])*(l[0])) + beta*(((h-1) + (1.%alpha)) - ((power[(1-alpha);#l])%alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p:p,(p[(#p)-1]*(1-alpha))
+p2:|p
+predict:(alpha*(sum (p2*l))) + (((1-alpha)*p2[0])*(l[0])) + beta*(((h-1) + (1.%alpha)) - ((power[(1-alpha);#l])%alpha))
 predict

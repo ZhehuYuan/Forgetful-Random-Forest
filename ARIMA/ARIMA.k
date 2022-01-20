@@ -13,7 +13,7 @@ e:()
 
 `
 L1:10?20
-L2:3?20
+L2:10?20
 "L1 L2"
 L1
 L2
@@ -50,7 +50,22 @@ tmp:11
 e:e, (l[tmp] - (phi[0] + (sum (phi[(!(p-1))+1]*l[tmp-(!(p-1))+1])) + (sum (theta[!q]*e[tmp-(!q)+1]))))
 tmp:12
 e:e, (l[tmp] - (phi[0] + (sum (phi[(!(p-1))+1]*l[tmp-(!(p-1))+1])) + (sum (theta[!q]*e[tmp-(!q)+1]))))
+tmp:13
+e:e, (l[tmp] - (phi[0] + (sum (phi[(!(p-1))+1]*l[tmp-(!(p-1))+1])) + (sum (theta[!q]*e[tmp-(!q)+1]))))
+tmp:14
+e:e, (l[tmp] - (phi[0] + (sum (phi[(!(p-1))+1]*l[tmp-(!(p-1))+1])) + (sum (theta[!q]*e[tmp-(!q)+1]))))
+tmp:15
+e:e, (l[tmp] - (phi[0] + (sum (phi[(!(p-1))+1]*l[tmp-(!(p-1))+1])) + (sum (theta[!q]*e[tmp-(!q)+1]))))
+tmp:16
+e:e, (l[tmp] - (phi[0] + (sum (phi[(!(p-1))+1]*l[tmp-(!(p-1))+1])) + (sum (theta[!q]*e[tmp-(!q)+1]))))
+tmp:17
+e:e, (l[tmp] - (phi[0] + (sum (phi[(!(p-1))+1]*l[tmp-(!(p-1))+1])) + (sum (theta[!q]*e[tmp-(!q)+1]))))
+tmp:18
+e:e, (l[tmp] - (phi[0] + (sum (phi[(!(p-1))+1]*l[tmp-(!(p-1))+1])) + (sum (theta[!q]*e[tmp-(!q)+1]))))
+tmp:19
+e:e, (l[tmp] - (phi[0] + (sum (phi[(!(p-1))+1]*l[tmp-(!(p-1))+1])) + (sum (theta[!q]*e[tmp-(!q)+1]))))
 
+e
 predict:(phi(0)) + (sum ({[x](phi(x+1)) * (l(((#l)-1)-x))}[!(p-1)])) + (sum ({[x](theta(x)) * (e(((#e)-1)-x))}[!q]))
 predict
 

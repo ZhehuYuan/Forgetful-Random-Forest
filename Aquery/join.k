@@ -21,3 +21,21 @@ InnerJoin:{[row1;row2;cond;v1;v2]	row:(row1;row2);	rows:(#v2)?,row;	rows:+((,!#v
 "Theta Inner Join: select A.a A.b B.b from A,B where B.a<=A.a"
 le:{[a;b]~a>b}
 +`a`Ab`Bb!+InnerJoin[(+(,B[`b]));(+A[`a`b]);le;B[`a];A[`a]]
+
+"Outer Join: select A.a A.b B.b from A outer join B on a"
+x:+InnerJoin[(+(,B[`b]));(+A[`a`b]);=;B[`a];A[`a]]
+z:((,B[`a]),(((#+B)-1)?,((#B)?,0)),,B[`b])
+y:(A[`a`b],((#+B)-1)?,((#A)?,0))
+y1:findAll[x[0];y[0];=]
+y:(+y)[(findAll[y1;(,0);{[x1;x2]x2=#x1}])[0]]
+z1:findAll[x[0];z[0];=]
+z:(+z)[(findAll[z1;(,0);{[x1;x2]x2=#x1}])[0]]
++`a`Ab`Bb!+(+x),y,z
+
+"Right Join: select A.a, A.b, B.b from A right join B on a"
+x:+InnerJoin[(+(,B[`b]));(+A[`a`b]);=;B[`a];A[`a]]
+z:((,B[`a]),(((#+B)-1)?,((#B)?,0)),,B[`b])
+z1:findAll[x[0];z[0];=]
+z:(+z)[(findAll[z1;(,0);{[x1;x2]x2=#x1}])[0]]
++`a`Ab`Bb!+(+x),z
+

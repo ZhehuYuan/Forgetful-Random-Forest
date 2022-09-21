@@ -35,6 +35,8 @@ RandomForest(long maxTree, long activeTree, long rotateTime, int height, long f,
 
 void fit(double** data, long* result, long size);
 
+long* fitThenPredict(double** trainData, long* trainResult, long trainSize, double** testData, long testSize);
+
 void Rotate();
 
 long Test(double* data);

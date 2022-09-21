@@ -39,6 +39,8 @@ minEval incrementalMinGiniDense(double** data, long* result, long size, long col
 
 minEval incrementalMinGiniSparse(double** dataNew, long* resultNew, long sizeNew, long sizeOld, DT* current, long col, long forgetSize);
 
+long* fitThenPredict(double** trainData, long* trainResult, long trainSize, double** testData, long testSize);
+
 void fit(double** data, long* result, long size);
 
 void Update(double** data, long* result, long size, DT* current);

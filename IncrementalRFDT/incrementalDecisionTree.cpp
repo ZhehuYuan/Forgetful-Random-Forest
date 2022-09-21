@@ -64,6 +64,7 @@ double getRand(){
 	return (double) rand() / RAND_MAX;
 }
 
+
 void createTree(DT* t, long currentHeight, long height, long f, long maxF, long classes){
 	srand(seed);
 	long i;
@@ -427,6 +428,15 @@ void DecisionTree::fit(double** data, long* result, long size){
 	}else{
 		IncrementalUpdate(data, result, size, DTree);
 	}
+}
+
+long* DecisionTree::fitThenPredict(double** trainData, long* trainResult, long trainSize, double** testData, long testSize){
+	fit(trainData, trainResult, trainSize);
+	long* testResult = (long*)malloc(testSize*sizeof(long));
+	for(long i=0; i<testSize; i++){
+		testResult[i] = Test(testData[i], DTree);
+	}
+	return testResult;
 }
 
 void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT* current){

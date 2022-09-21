@@ -86,6 +86,14 @@ void RandomForest::fit(double** data, long* result, long size){
 	timer++;
 }
 
+long* RandomForest::fitThenPredict(double** trainData, long* trainResult, long trainSize, double** testData, long testSize){
+        fit(trainData, trainResult, trainSize);
+        long* testResult = (long*)malloc(testSize*sizeof(long));
+        for(long i=0; i<testSize; i++){
+                testResult[i] = Test(testData[i]);
+        }
+        return testResult;
+}
 
 void RandomForest::Rotate(){
 	if(noTree==maxTree){

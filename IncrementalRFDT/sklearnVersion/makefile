@@ -6,6 +6,46 @@ runIRF:
 	python irfTest.py 20 
 	python irfTest.py 20 
 
+runCov:
+	python3 HoeffdingTree.py covtype 1
+	python3 HoeffdingTree.py covtype 1
+	python3 HoeffdingTree.py covtype 1
+	python3 HoeffdingTree.py covtype 1
+	python3 HoeffdingTree.py covtype 1
+	python3 HoeffdingTree.py covtype 1
+	python3 HoeffdingTree.py covtype 2
+	python3 HoeffdingTree.py covtype 2
+	python3 HoeffdingTree.py covtype 2
+	python3 HoeffdingTree.py covtype 2
+	python3 HoeffdingTree.py covtype 2
+	python3 HoeffdingTree.py covtype 2
+	python3 HoeffdingTree.py covtype 3
+	python3 HoeffdingTree.py covtype 3
+	python3 HoeffdingTree.py covtype 3
+	python3 HoeffdingTree.py covtype 3
+	python3 HoeffdingTree.py covtype 3
+	python3 HoeffdingTree.py covtype 3
+
+runSynth:
+	python3 HoeffdingTree.py Synth 1
+	python3 HoeffdingTree.py Synth 1
+	python3 HoeffdingTree.py Synth 1
+	python3 HoeffdingTree.py Synth 1
+	python3 HoeffdingTree.py Synth 1
+	python3 HoeffdingTree.py Synth 1
+	python3 HoeffdingTree.py Synth 2 
+	python3 HoeffdingTree.py Synth 2 
+	python3 HoeffdingTree.py Synth 2 
+	python3 HoeffdingTree.py Synth 2 
+	python3 HoeffdingTree.py Synth 2 
+	python3 HoeffdingTree.py Synth 2 
+	python3 HoeffdingTree.py Synth 3 
+	python3 HoeffdingTree.py Synth 3 
+	python3 HoeffdingTree.py Synth 3 
+	python3 HoeffdingTree.py Synth 3 
+	python3 HoeffdingTree.py Synth 3 
+	python3 HoeffdingTree.py Synth 3 
+
 runPhi:
 	python3 HoeffdingTree.py phi 1
 	python3 HoeffdingTree.py phi 1
@@ -25,26 +65,6 @@ runPhi:
 	python3 HoeffdingTree.py phi 3
 	python3 HoeffdingTree.py phi 3
 	python3 HoeffdingTree.py phi 3
-
-runKDD:
-	python3 HoeffdingTree.py KDD 1
-	python3 HoeffdingTree.py KDD 1
-	python3 HoeffdingTree.py KDD 1
-	python3 HoeffdingTree.py KDD 1
-	python3 HoeffdingTree.py KDD 1
-	python3 HoeffdingTree.py KDD 1
-	python3 HoeffdingTree.py KDD 2
-	python3 HoeffdingTree.py KDD 2
-	python3 HoeffdingTree.py KDD 2
-	python3 HoeffdingTree.py KDD 2
-	python3 HoeffdingTree.py KDD 2
-	python3 HoeffdingTree.py KDD 2
-	python3 HoeffdingTree.py KDD 3
-	python3 HoeffdingTree.py KDD 3
-	python3 HoeffdingTree.py KDD 3
-	python3 HoeffdingTree.py KDD 3
-	python3 HoeffdingTree.py KDD 3
-	python3 HoeffdingTree.py KDD 3
 
 runElec:
 	python3 HoeffdingTree.py Elec 1
@@ -66,26 +86,6 @@ runElec:
 	python3 HoeffdingTree.py Elec 3
 	python3 HoeffdingTree.py Elec 3
 
-runAWS:
-	python3 HoeffdingTree.py AWS 1
-	python3 HoeffdingTree.py AWS 1
-	python3 HoeffdingTree.py AWS 1
-	python3 HoeffdingTree.py AWS 1
-	python3 HoeffdingTree.py AWS 1
-	python3 HoeffdingTree.py AWS 1
-	python3 HoeffdingTree.py AWS 2
-	python3 HoeffdingTree.py AWS 2
-	python3 HoeffdingTree.py AWS 2
-	python3 HoeffdingTree.py AWS 2
-	python3 HoeffdingTree.py AWS 2
-	python3 HoeffdingTree.py AWS 2
-	python3 HoeffdingTree.py AWS 3
-	python3 HoeffdingTree.py AWS 3
-	python3 HoeffdingTree.py AWS 3
-	python3 HoeffdingTree.py AWS 3
-	python3 HoeffdingTree.py AWS 3
-	python3 HoeffdingTree.py AWS 3
-
 runM5:
 	python3 HoeffdingTree.py M5 1
 	python3 HoeffdingTree.py M5 1
@@ -105,3 +105,17 @@ runM5:
 	python3 HoeffdingTree.py M5 3
 	python3 HoeffdingTree.py M5 3
 	python3 HoeffdingTree.py M5 3
+
+runTmp2:
+	python3 HoeffdingTree.py M5 3
+	python3 HoeffdingTree.py M5 3
+	python3 HoeffdingTree.py M5 3
+	python3 HoeffdingTree.py M5 3
+	python3 HoeffdingTree.py M5 3
+	python3 HoeffdingTree.py M5 3
+
+
+runTmp:
+	python3 HoeffdingTree.py Synth 3 
+	python3 HoeffdingTree.py Synth 3 
+	python3 HoeffdingTree.py Synth 3 

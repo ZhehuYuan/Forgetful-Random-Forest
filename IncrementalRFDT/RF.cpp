@@ -30,7 +30,7 @@ struct DT{
         long size = 0;// Size of the dataset
 };
 
-RandomForest::RandomForest(long mTree, long actTree, long rTime, int h, long feature, int* s, double forg, long maxF, long noC, Evaluation eval){
+RandomForest::RandomForest(long mTree, long actTree, long rTime, int h, long feature, int* s, double forg, long maxF, long noC, Evaluation eval, long r){
 	srand((long)clock());
 	if(actTree<1)actTree=1;
 	noTree = actTree;
@@ -41,7 +41,8 @@ RandomForest::RandomForest(long mTree, long actTree, long rTime, int h, long fea
 	if(rTime<=0)rTime=1;
 	rotateTime = rTime;
 	timer = 0;
-	
+	retain = r;	
+
 	long i;
 	height = h;
 	f = feature;
@@ -55,7 +56,7 @@ RandomForest::RandomForest(long mTree, long actTree, long rTime, int h, long fea
 	DTrees = (DecisionTree**)malloc(mTree*sizeof(DecisionTree*));
 	for(i=0; i<mTree; i++){
 		if(i<actTree){
-			DTrees[i] = new DecisionTree(height, f, sparse, forget, maxFeature, noClasses, e);
+			DTrees[i] = new DecisionTree(height, f, sparse, forget, maxFeature, noClasses, e, r);
 		}
 		else{
 			DTrees[i]=nullptr;
@@ -102,7 +103,7 @@ void RandomForest::Rotate(){
 	}else{
 		noTree++;
 	}
-	DTrees[(treePointer+activeTree)%maxTree] = new DecisionTree(height, f, sparse, forget, maxFeature, noClasses, e);
+	DTrees[(treePointer+activeTree)%maxTree] = new DecisionTree(height, f, sparse, forget, maxFeature, noClasses, e, retain);
 	long size = DTrees[(treePointer+activeTree-1)%maxTree]->DTree->size;
 	double** newData = new double*[size];
 	long* newResult = new long[size];

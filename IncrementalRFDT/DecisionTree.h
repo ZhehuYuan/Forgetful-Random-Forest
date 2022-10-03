@@ -24,8 +24,10 @@ int* Sparse;
 double forgetRate;
 Evaluation evalue;
 bool Rebuild;
+long called;
+long retain;
 
-DecisionTree(int hight, long f, int* sparse, double forget, long maxFeature, long noClasses, Evaluation e=Evaluation::gini);
+DecisionTree(int hight, long f, int* sparse, double forget, long maxFeature, long noClasses, Evaluation e, long r);
 
 void Stablelize();
 
@@ -35,9 +37,9 @@ minEval findMinGiniDense(double** data, long* result, long* totalT, long size, l
 
 minEval findMinGiniSparse(double** data, long* result, long* totalT, long size, long col, DT* current);
 
-minEval incrementalMinGiniDense(double** data, long* result, long size, long col, long*** count, double** record, long* max, long newCount, long forgetSize);
+minEval incrementalMinGiniDense(double** data, long* result, long size, long col, long*** count, double** record, long* max, long newCount, long forgetSize, bool isRoot);
 
-minEval incrementalMinGiniSparse(double** dataNew, long* resultNew, long sizeNew, long sizeOld, DT* current, long col, long forgetSize);
+minEval incrementalMinGiniSparse(double** dataNew, long* resultNew, long sizeNew, long sizeOld, DT* current, long col, long forgetSize, bool isRoot);
 
 long* fitThenPredict(double** trainData, long* trainResult, long trainSize, double** testData, long testSize);
 

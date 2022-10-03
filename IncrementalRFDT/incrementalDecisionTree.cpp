@@ -85,7 +85,6 @@ void createTree(DT* t, long currentHeight, long height, long f, long maxF, long 
 	t->height = currentHeight;
 	t->feature = -1;
 	t->size = 0;
-	
 	if(currentHeight>height){
 		t->right = nullptr;
 		t->left = nullptr;
@@ -137,14 +136,15 @@ void freeTree(DT* t){
 	free(t);
 }
 
-DecisionTree::DecisionTree(int height, long f, int* sparse, double forget, long maxF=0, long noClasses=2, Evaluation e){
+DecisionTree::DecisionTree(int height, long f, int* sparse, double forget=0.1, long maxF=0, long noClasses=2, Evaluation e=Evaluation::gini, long r=-1){
 	evalue = e;
+	called = 0;	
 	long i;
 	// Max tree height
 	maxHeight = height;
 	// Number of features
 	feature = f;
-	// If each feature is sparse or dense
+	// If each feature is sparse or dense, 0 for dense, 1 for sparse, >2 for number of category
 	Sparse = (int*)malloc(f*sizeof(int));
 	for(i = 0; i<f; i++){
 		Sparse[i] = sparse[i];
@@ -161,6 +161,7 @@ DecisionTree::DecisionTree(int height, long f, int* sparse, double forget, long 
 		maxFeature = maxF;
 	}
 	forgetRate = std::min(1.0, forget);
+	retain = r;
 	createTree(DTree, 0, maxHeight, f, maxFeature, noClasses);
 	// Randomly generate the features
 	//DTree->featureId = Rands();
@@ -183,8 +184,9 @@ void DecisionTree::Free(){
 	freeTree(DTree);
 }
 
-minEval DecisionTree::incrementalMinGiniSparse(double** dataTotal, long* resultTotal, long sizeTotal, long sizeNew, DT* current, long col, long forgetSize){
+minEval DecisionTree::incrementalMinGiniSparse(double** dataTotal, long* resultTotal, long sizeTotal, long sizeNew, DT* current, long col, long forgetSize, bool isRoot){
 	long i, j;
+	if(isRoot){sizeNew=sizeTotal-forgetSize;}
 	long newD[sizeNew];
 	for(i=0; i<sizeNew; i++)newD[i]=i;
 	long T[classes];
@@ -234,9 +236,10 @@ minEval DecisionTree::incrementalMinGiniSparse(double** dataTotal, long* resultT
 	ret.values = nullptr;
 	return ret;
 }
-minEval DecisionTree::incrementalMinGiniDense(double** data, long* result, long size, long col, long*** count, double** record, long* max, long newSize, long forgetSize){
+minEval DecisionTree::incrementalMinGiniDense(double** data, long* result, long size, long col, long*** count, double** record, long* max, long newSize, long forgetSize, bool isRoot){
 	// newSize is before forget 
 	long low = 0;
+	if(isRoot)size=newSize-forgetSize;
 	long i, j, k;
 	long newMax = 0;
 	long maxLocal = max[col];
@@ -253,7 +256,8 @@ minEval DecisionTree::incrementalMinGiniDense(double** data, long* result, long 
 	for(i=0;i<classes;i++)T[i]=0;
 	for(i=0;i<max[col];i++){
 		for(j=0;j<classes;j++){
-			if(T[j]<count[col][i][j])T[j]=count[col][i][j];
+			if(isRoot)count[col][i][j]=0;
+			else if(T[j]<count[col][i][j])T[j]=count[col][i][j];
 		}
 	}
 	
@@ -428,6 +432,15 @@ void DecisionTree::fit(double** data, long* result, long size){
 	}else{
 		IncrementalUpdate(data, result, size, DTree);
 	}
+	/*
+	if(Rebuild and called==10){
+		called = 0;
+		Rebuild = false;
+	}else if(Rebuild){
+		called = 11;
+	}else{
+		called++;
+	}*/
 }
 
 long* DecisionTree::fitThenPredict(double** trainData, long* trainResult, long trainSize, double** testData, long testSize){
@@ -442,7 +455,9 @@ long* DecisionTree::fitThenPredict(double** trainData, long* trainResult, long t
 void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT* current){
 	long i, j;
 	long low = 0;
-	long forgetSize = (long)current->size*forgetRate;
+	long forgetSize=0;
+       	if(retain>0 and current->size+size>retain) forgetSize = std::min(current->size+size - retain, current->size);
+	else if(retain<0) forgetSize = (long)current->size*forgetRate;
 	long* index = new long[current->size];
 	double** dataNew;
 	long* resultNew;
@@ -508,10 +523,10 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	// TODO
 	for(i=0;i<maxFeature; i++){
 		if(Sparse[current->featureId[i]]==1){
-			c = incrementalMinGiniSparse(dataNew, resultNew, current->size+forgetSize, size, current, current->featureId[i], forgetSize);
+			c = incrementalMinGiniSparse(dataNew, resultNew, current->size+forgetSize, size, current, current->featureId[i], forgetSize, current->height==0);
 		}
 		else if(Sparse[current->featureId[i]]==0){
-			c = incrementalMinGiniDense(dataNew, resultNew, size, current->featureId[i], current->count, current->record, current->max, current->size+forgetSize, forgetSize);
+			c = incrementalMinGiniDense(dataNew, resultNew, size, current->featureId[i], current->count, current->record, current->max, current->size+forgetSize, forgetSize, current->height==0);
 		}else{
 			//c = incrementalMinGiniCategorical();
 		}

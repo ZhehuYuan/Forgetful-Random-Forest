@@ -50,17 +50,19 @@ int main(int argc, char* argv[]){
 	long classes = 2;
 	double forgetRate = 0.1;
 	DecisionTree* test;
-       	if(argv[1][0]=='1'){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0.1, feature, classes, Evaluation::gini);
-	}else if(argv[1][0]=='4'){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0, feature, classes, Evaluation::gini);
-	}else if(argv[1][0]=='3'){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0.1, feature, classes, Evaluation::gini);
+       	if(atol(argv[1])==1){
+		test = new DecisionTree(8, feature, (int*)isSparse, 0.1, feature, classes, Evaluation::gini, -1);
+	}else if(atol(argv[1])==4){
+		test = new DecisionTree(8, feature, (int*)isSparse, 0, feature, classes, Evaluation::gini, -1);
+	}else if(atol(argv[1])==3){
+		test = new DecisionTree(8, feature, (int*)isSparse, 0.1, feature, classes, Evaluation::gini, -1);
 		test->Rebuild = true;
-	}else if(argv[1][0]=='0'){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0.05, feature, classes, Evaluation::gini);
-	}else if(argv[1][0]=='2'){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0.2, feature, classes, Evaluation::gini);
+	}else if(atol(argv[1])==0){
+		test = new DecisionTree(8, feature, (int*)isSparse, 0.05, feature, classes, Evaluation::gini, -1);
+	}else if(atol(argv[1])==2){
+		test = new DecisionTree(8, feature, (int*)isSparse, 0.2, feature, classes, Evaluation::gini, -1);
+	}else{
+		test = new DecisionTree(8, feature, (int*)isSparse, 0, feature, classes, Evaluation::gini, atol(argv[1]));
 	}
 	double** data;
 	long* result;

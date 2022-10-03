@@ -115,17 +115,19 @@ int main(int argc, char* argv[]){
 	}
 	else if(argv[1][0]=='1'){
 		DecisionTree* test;
-	       	if(argv[2][0]=='0'){
-			test = new DecisionTree(8, feature, isSparse, 0.1, feature, classes, Evaluation::gini);
-		}else if(argv[2][0]=='1'){
-			test = new DecisionTree(8, feature, isSparse, 0, feature, classes, Evaluation::gini);
-		}else if(argv[2][0]=='2'){
-			test = new DecisionTree(8, feature, isSparse, 0.1, feature, classes, Evaluation::gini);
+	       	if(atoi(argv[2])==0){
+			test = new DecisionTree(8, feature, isSparse, 0.1, feature, classes, Evaluation::gini, -1);
+		}else if(atoi(argv[2])==1){
+			test = new DecisionTree(8, feature, isSparse, 0, feature, classes, Evaluation::gini, -1);
+		}else if(atoi(argv[2])==2){
+			test = new DecisionTree(8, feature, isSparse, 0.1, feature, classes, Evaluation::gini, -1);
 			test->Rebuild = true;
-		}else if(argv[2][0]=='3'){
-			test = new DecisionTree(8, feature, isSparse, 0.05, feature, classes, Evaluation::gini);
-		}else if(argv[2][0]=='4'){
-			test = new DecisionTree(8, feature, isSparse, 0.2, feature, classes, Evaluation::gini);
+		}else if(atoi(argv[2])==3){
+			test = new DecisionTree(8, feature, isSparse, 0.05, feature, classes, Evaluation::gini, -1);
+		}else if(atoi(argv[2])==4){
+			test = new DecisionTree(8, feature, isSparse, 0.2, feature, classes, Evaluation::gini, -1);
+		}else{
+			test = new DecisionTree(8, feature, isSparse, 0.2, feature, classes, Evaluation::gini, atol(argv[2]));
 		}
 		long maxSize = 0;
 		for(i = 1; i<944; i++){

@@ -27,8 +27,8 @@ def Phi():
     
     TF = 0
     T = 0
-    data = X[1000:]
-    result = y[1000:]
+    data = X[2000:]
+    result = y[2000:]
     x = dt.predict(data)
     for j in range(len(x)):
         if x[j]==result[j]:
@@ -39,7 +39,7 @@ def Phi():
 def Elec():
     X = []
     y = []
-    for i in range(1, 400):
+    for i in range(1, 21):
         f = open("../electricity/electricity"+str(i)+".txt", "r")
         data = []
         result = []
@@ -56,20 +56,14 @@ def Elec():
         f.close()
         X.extend(data)
         y.extend(result)
+        
     before = time.time()
     dt = train(X[:3469], y[:3469])
     print(str(time.time()-before))
 
     T = 0
     TF = 0
-    data = X[3469:]
-    result = y[3469:]
-    x = dt.predict(data)
-    for j in range(len(x)):
-        if x[j]==result[j]:
-            T+=1
-    TF+=len(x)
-    for i in range(400, 944):
+    for i in range(21, 944):
         f = open("../electricity/electricity"+str(i)+".txt", "r")
         data = []
         result = []
@@ -97,7 +91,7 @@ def Elec():
 def M5():
     X = []
     y = []
-    for i in range(0, 98):
+    for i in range(0, 30):
         f = open("../M5/day_"+str(i), "r")
         data = []
         result = []
@@ -127,7 +121,7 @@ def M5():
         if x[j]==result[j]:
             T+=1
     TF+=len(x)
-    for i in range(98, 133):
+    for i in range(21, 133):
         f = open("../M5/day_"+str(i), "r")
         data = []
         result = []
@@ -152,11 +146,11 @@ def M5():
     
 lastX = 0
 
-def KDD():
-    f = open("../KDD/KDDTrain+.txt", "r")
+def Cov():
+    f = open("../Synthetic/covtype", "r")
     X, y = [], []
-    for i in range(int(125973/5)+10000):
-        l = f.readline()[:-2]
+    for i in range(581012):
+        l = f.readline()[:-1]
         a = l.split(" ")
         a = [float(i) for i in a]
         X.append(a[:-1])
@@ -164,11 +158,11 @@ def KDD():
     
     data = []
     result = []
-    aaa = int(125973/5)
+    aaa = 581012
 
     if(1):
         t = time.time()
-        dt = train(X[:3999], y[:3999])
+        dt = train(X[:10000], y[:10000])
         print(time.time()-t)
     else:
         for i in range(int(aaa/400)):
@@ -181,44 +175,44 @@ def KDD():
 
     #dt = train(np.array(data), np.array(result))
    
-    xx = dt.predict(X[3999: aaa+10000])
-    y = y[3999:aaa+10000]
+    xx = dt.predict(X[20000:])
+    y = y[20000:]
     yy = 0
-    for i in range(10000+aaa-3999):
+    for i in range(561012):
         if xx[i] == y[i]:
             yy+=1
-    print(yy/(10000+aaa-3999))
+    print(yy/(561012))
 
-x = [3]
+x = [0, 1, 2, 3]
 if 0 in x:
-    print("KDD:")
-    KDD()
-    KDD()
-    KDD()
-    KDD()
-    KDD()
-    KDD()
+    print("covtype:")
+    Cov()
+    Cov()
+    Cov()
+    Cov()
+    Cov()
+    Cov()
 if 1 in x:
     print("M5:")
     M5()
-    M5()
-    M5()
-    M5()
-    M5()
-    M5()
+    #M5()
+    #M5()
+    #M5()
+    #M5()
+    #M5()
 if 2 in x:
     print("Elec:")
     Elec()
-    Elec()
-    Elec()
-    Elec()
-    Elec()
-    Elec()
+    #Elec()
+    #Elec()
+    #Elec()
+    #Elec()
+    #Elec()
 if 3 in x:
     print("phishing:")
     Phi()
-    Phi()
-    Phi()
-    Phi()
-    Phi()
-    Phi()
+    #Phi()
+    #Phi()
+    #Phi()
+    #Phi()
+    #Phi()

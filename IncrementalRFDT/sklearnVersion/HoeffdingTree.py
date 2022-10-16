@@ -6,24 +6,31 @@ from skmultiflow.trees import HoeffdingAdaptiveTreeClassifier
 from skmultiflow.trees import LabelCombinationHoeffdingTreeClassifier
 from skmultiflow.trees import iSOUPTreeRegressor
 from skmultiflow.trees import StackedSingleTargetHoeffdingTreeRegressor
+from skmultiflow.meta import AdaptiveRandomForestClassifier
 from skmultiflow.data import RegressionGenerator
 import joblib
 import sys
 from sklearn import svm
 from sklearn.linear_model import SGDClassifier as SGDC
 
-def CovType(modelID):
+def Synth(modelID, dataId):
     if modelID==1:
         ht = HoeffdingTreeClassifier()
     elif modelID==2:
         ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
     elif modelID==3:
         ht = iSOUPTreeRegressor(tie_threshold=0.5)
+    elif modelID==4:
+        ht = AdaptiveRandomForestClassifier(20, 3)
     else:
         print("wrong model ID\n")
         exit(0)
     
-    f = open("../covtype/covtype", "r")
+    if dataId==0:
+        f = open("../mixed/mixed_0101_gradual.csv", "r")
+    else:
+        f = open("../mixed/mixed_0101_abrupto.csv", "r")
+
     data = []
     result = []
     for line in f:
@@ -35,13 +42,13 @@ def CovType(modelID):
         for i in range(len(line)-1):
             data[-1].append(float(line[i]))
         if modelID==3:
-            result.append([1.0 if int(float(line[-1]))==i else 0.0 for i in range(7)])
+            result.append([1.0 if int(float(line[-1]))==i else 0.0 for i in range(2)])
         else:
             result.append(int(float(line[-1])))
     f.close()
 
     t = 0.0
-    length = int(581012/10)
+    length = len(data)
     T = 0
     TF = 0
     start = 0
@@ -72,7 +79,69 @@ def CovType(modelID):
         start = end
     print(t)
     print(T/TF)
-    print(ht.measure_tree_depth())
+
+def CovType(modelID):
+    if modelID==1:
+        ht = HoeffdingTreeClassifier()
+    elif modelID==2:
+        ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
+    elif modelID==3:
+        ht = iSOUPTreeRegressor(tie_threshold=0.5)
+    elif modelID==4:
+        ht = AdaptiveRandomForestClassifier(20, 8)
+    else:
+        print("wrong model ID\n")
+        exit(0)
+    
+    f = open("../covtype/covtype", "r")
+    data = []
+    result = []
+    for line in f:
+        if line=="\n" or len(line)<20:
+            continue
+        data.append([])
+        line = line.replace("\n", "")
+        line = line.split(" ")
+        for i in range(len(line)-1):
+            data[-1].append(float(line[i]))
+        if modelID==3:
+            result.append([1.0 if int(float(line[-1]))==i else 0.0 for i in range(7)])
+        else:
+            result.append(int(float(line[-1])))
+    f.close()
+
+    t = 0.0
+    length = 581012
+    T = 0
+    TF = 0
+    start = 0
+    gap = 400
+    while start<length:
+        end = min(start+gap, length)
+        X = data[start:end]
+        y = result[start:end]
+        if start >= 20*gap:
+            for i in range(start, end):
+                TF+=1
+                x = ht.predict(np.array([data[i]]))[0]
+                if modelID == 3:
+                    x = x.tolist()
+                    x=x.index(max(x))
+                    if x == result[i].index(max(result[i])):
+                        T+=1
+                else:
+                    if x == result[i]:
+                        T+=1
+        if(end!=length):
+            t1 = time.time()
+            if modelID==3:
+                ht.partial_fit(np.array(X), np.array(y))
+            else:
+                ht.partial_fit(np.array(X), np.array(y))
+            t+=time.time()-t1
+        start = end
+    print(t)
+    print(T/TF)
 
 def Elec(modelID):
     if modelID==1:
@@ -81,6 +150,8 @@ def Elec(modelID):
         ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
     elif modelID==3:
         ht = iSOUPTreeRegressor(tie_threshold=0.5)
+    elif modelID==4:
+        ht = AdaptiveRandomForestClassifier(20, 3)
     else:
         print("wrong model ID\n")
         exit(0)
@@ -140,8 +211,8 @@ def M5(modelID):
         ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
     elif modelID==3:
         ht = iSOUPTreeRegressor(tie_threshold=0.5)
-    elif modelID==4 or modelID==5:
-        ht = svm.SVC()
+    elif modelID==4:
+        ht = AdaptiveRandomForestClassifier(20, 6)
     else:
         print("wrong model ID\n")
         exit(0)
@@ -222,6 +293,8 @@ def Phishing(modelID):
         ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
     elif modelID==3:
         ht = iSOUPTreeRegressor(tie_threshold=0.5)
+    elif modelID==4:
+        ht = AdaptiveRandomForestClassifier(20, 7)
     else:
         print("wrong model ID\n")
         exit(0)
@@ -262,7 +335,7 @@ if __name__=="__main__":
     dataset = sys.argv[1]
     modelID = int(sys.argv[2])
     if dataset=="Synth":
-        Synth(modelID)
+        Synth(modelID, int(sys.argv[3]))
     elif dataset=="covtype":
         CovType(modelID)
     elif dataset=="phi":

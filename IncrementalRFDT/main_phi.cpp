@@ -2,6 +2,7 @@
 #include "RF.h"
 #include <fstream>
 #include <ctime>
+#include <cmath>
 
 struct DT{
         int height;
@@ -32,10 +33,12 @@ struct DT{
 
 
 int main(int argc, char* argv[]){
-	if(argc!=3){
+	if(argc!=4 and argc!=3){
 		printf("Please input parameters: [0 for random forest or 1 for decision tree] [0 to 2 for different settings]\n");
 		return -1;
 	}
+	long rb = 1000000;
+	if(argc==4) rb=atol(argv[3]);
         long i,j,k, kkk=0;
         long frag = 100;
         long size = 11055;
@@ -44,6 +47,8 @@ int main(int argc, char* argv[]){
         long feature = 46;
         double*** data;
         long** result;
+	long memSize = 1600;
+	long maxH = 6;
         int isSparse[46]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         char buf[1024] = { 0 };
         std::ifstream infile;
@@ -72,12 +77,18 @@ int main(int argc, char* argv[]){
 	double time=0.0;
         clock_t start,end;
         if(argv[1][0]=='0'){
+		long maxF = 7;
 		RandomForest* test;
-		if(argv[2][0]=='0'){
-        		test = new RandomForest(50, 20, 5, 8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini);
+		if(atol(argv[2])==0){
+        		test = new RandomForest(10, 10, 5, 6, feature, isSparse, 0.1, 7, noClasses, Evaluation::gini, 400);
+		}else if(atol(argv[2])==1){
+                        if (argc==4)maxF = atol(argv[3]);
+        		test = new RandomForest(4, 4, 5, maxH, feature, isSparse, 0.1, maxF, noClasses, Evaluation::gini, memSize);
 		}else{
-        		test = new RandomForest(20, 20, 5, 8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini);
-		}
+                        long totalQueue = atol(argv[2]);
+                        if (argc==4)totalQueue = atol(argv[3]);
+                        test = new RandomForest(4, 4, 5, 8, feature, (int*)isSparse, 0.1, feature, noClasses, Evaluation::gini, memSize);
+                }
         	for(kkk=0;kkk<=no;kkk++){
 			if(kkk!=no){
 				if(kkk>=20){
@@ -100,28 +111,28 @@ int main(int argc, char* argv[]){
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
 	        if(atoi(argv[2])==1){
-			test= new DecisionTree(8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==4){
-			test= new DecisionTree(8, feature, isSparse, 0, feature, noClasses, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==3){
-			test= new DecisionTree(8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, -1);
-			test->Rebuild = true;
+			test= new DecisionTree(6, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, 400, 1);
 		}else if(atoi(argv[2])==0){
-			test= new DecisionTree(8, feature, isSparse, 0.05, feature, noClasses, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==2){
-			test= new DecisionTree(8, feature, isSparse, 0.2, feature, noClasses, Evaluation::gini, -1);
+			//int tmp = maxH;
+			//if(argc==4)tmp = atoi(argv[3]);
+			test= new DecisionTree(6, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, 400, 2147483647);
 		}else{
-			test= new DecisionTree(8, feature, isSparse, 0, feature, noClasses, Evaluation::gini, atol(argv[2]));	
+			test= new DecisionTree(15, feature, isSparse, 0, feature, noClasses, Evaluation::gini, 2147483647, 2147483647);	
 		}
         	long maxSize = 0;
         	for(kkk=0;kkk<=no;kkk++){
 			if(kkk!=no){
 				if(kkk>=20){
+				//if(kkk>=1){
 					total += frag;
 					for(i=0; i<frag; i++){
                 				if(test->Test(data[kkk][i], test->DTree)==result[kkk][i])count++;
 					}
+					//printf("%f %ld %ld\n", (double)count/total, test->DTree->size, test->maxHeight);
+					//total = 0;
+					//count = 0;
 				}
+				//test->maxHeight = sqrt(sqrt(test->DTree->size+frag));
 				start = clock();
                 		test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
 				time += (double)(clock()-start)/CLOCKS_PER_SEC;

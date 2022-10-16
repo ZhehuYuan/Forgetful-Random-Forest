@@ -1,7 +1,9 @@
+#include <cmath>
 #include <iostream>
 #include "RF.h"
 #include <fstream>
 #include <ctime>
+#include <string>
 
 struct DT{
         int height;
@@ -31,29 +33,50 @@ struct DT{
 };
 
 int main(int argc, char* argv[]){
-	if(argc!=4){
+	if(argc!=4 and argc!=5){
 		printf("Please input parameters: [0 for random forest or 1 for decision tree] [0 to 2 for different settings] [1 for abrupto 2 for gradual]\n");
 		return -1;
 	}
+	long rb=2147483647;
         long i,j,k, kkk=0;
         long frag = 100;
-        long size = 40000;
-        long no = size/frag+1;
-        long noClasses = 7;
+        long size = 100000;
+        long noClasses = 2;
         long feature = 4;
+	long maxH = 4;
+	long memSize = 400;//=2*feature*noClasses*sqrt(size/4);
         double*** data;
         long** result;
-        int isSparse[feature] = {0, 0, 1, 1};
         char buf[1024] = { 0 };
-        std::ifstream infile;
-        if(atoi(argv[3])==1){
-		infile.open("Synthetic/mixed_0101_abrupto", std::ios::in);
-	}else{
-		infile.open("Synthetic/mixed_0101_gradual", std::ios::in);
-		size+=1000;
+	int isSparse[20] = {1, 1, 1, 1};
+	if(atoi(argv[3])==1){
+		size=200000;
+		memSize = 800;
 	}
+	else if(atoi(argv[3])==2){
+		noClasses=10;
+		memSize = 400;
+	}
+	else if(atoi(argv[3])==3){
+		feature=20;
+		memSize = 800;
+		int isSparse1[feature] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+		for(i=0; i<feature; i++){
+			isSparse[i] = isSparse1[i];
+		}
+	}
+	else if(atoi(argv[3])==4){
+        	memSize = 100;
+	}
+        long no = size/frag;
+	//maxH = sqrt(sqrt(memSize));
         data = (double***)malloc(no*sizeof(double**));
         result = (long**)malloc(no*sizeof(long*));
+        std::ifstream infile;
+	const char* name[5] = {"benchmark", "200000Data", "5classes" , "20features", "32concept"}; 
+	std::string fname = name[atoi(argv[3])];
+	std::string dname = "Synthetic/";
+	infile.open(dname+fname, std::ios::in);
         for(i=0;i<no;i++){
                 data[i] = (double**)malloc(frag*sizeof(double*));
                 result[i] = (long*)malloc(frag*sizeof(long));
@@ -65,18 +88,24 @@ int main(int argc, char* argv[]){
                         data[i/frag][i%frag][j] = atof(buf);
                 }
                 infile>>buf;
-                result[i/frag][i%frag] = atoi(buf)-1;
+                result[i/frag][i%frag] = atoi(buf);
         }
-        long T=0, TF=0;
+	long T=0, TF=0;
 	double t = 0.0;
         clock_t start,end;
         if(argv[1][0]=='0'){
+               	long maxF =(int)sqrt(feature);
 		RandomForest* test;
-		if(argv[2][0]=='0'){
-        		test = new RandomForest(50, 20, 5, 8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini);
+		if(atol(argv[2])==0){
+        		test = new RandomForest(12, 12, 5, 8, feature, isSparse, 0.1, maxF, noClasses, Evaluation::gini, 400);
+		}else if(atol(argv[2])==1){
+                        if (argc==5)maxF = atol(argv[4]);
+			if (maxF>feature) return 0;
+        		test = new RandomForest(10, 10, 5, 8, feature, isSparse, 0.1, maxF, noClasses, Evaluation::gini, 400);
 		}else{
-        		test = new RandomForest(20, 20, 5, 8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini);
-		}
+                        long totalQueue = atol(argv[2]);
+                        test = new RandomForest(totalQueue, totalQueue, 5, maxH, feature, (int*)isSparse, 0, maxF, noClasses, Evaluation::gini, memSize);
+                }
         	for(kkk=0;kkk<no;kkk++){
                 	if(kkk>=20){
 				if(kkk == no-1){
@@ -99,19 +128,14 @@ int main(int argc, char* argv[]){
 		}
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
-	        if(atoi(argv[2])==1){
-			test= new DecisionTree(8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==4){
-			test= new DecisionTree(8, feature, isSparse, 0, feature, noClasses, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==3){
-			test= new DecisionTree(8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, -1);
-			test->Rebuild = true;
-		}else if(atoi(argv[2])==0){
-			test= new DecisionTree(8, feature, isSparse, 0.05, feature, noClasses, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==2){
-			test= new DecisionTree(8, feature, isSparse, 0.2, feature, noClasses, Evaluation::gini, -1);	
+	        if(atoi(argv[2])==0){
+			test= new DecisionTree(maxH, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, memSize, 1);
+		}else if(atoi(argv[2])==1){
+			int tmp = 1;
+			if(argc==5)tmp = atoi(argv[4]);
+			test= new DecisionTree(tmp, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, 400, 2147483647);
 		}else{
-			test= new DecisionTree(8, feature, isSparse, 0.2, feature, noClasses, Evaluation::gini, atol(argv[2]));	
+			test= new DecisionTree(10, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, atol(argv[2]), rb);	
 		}
 		long maxSize = 0;
         	for(kkk=0;kkk<no;kkk++){
@@ -135,8 +159,7 @@ int main(int argc, char* argv[]){
                 		if(test->DTree->size>maxSize)maxSize=test->DTree->size;
 			}
 		}
-		printf("%ld\n", maxSize);
 	}
-	printf("%f\n%f\n", t, (double)T/TF);
+	printf("%f\n", (double)T/TF);
 }
 

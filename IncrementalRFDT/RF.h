@@ -24,6 +24,7 @@ long retain;
 DecisionTree** DTrees = nullptr;
 
 long height;
+long Rebuild;
 long f;
 int* sparse;
 double forget;
@@ -32,7 +33,7 @@ long noClasses;
 Evaluation e;
 
 
-RandomForest(long maxTree, long activeTree, long rotateTime, int height, long f, int* sparse, double forget, long maxFeature=0, long noClasses=2, Evaluation e=Evaluation::gini, long r=-1);
+RandomForest(long maxTree, long activeTree, long rotateTime, int height, long f, int* sparse, double forget, long maxFeature=0, long noClasses=2, Evaluation e=Evaluation::gini, long r=-1, long rb=1);
 
 void fit(double** data, long* result, long size);
 

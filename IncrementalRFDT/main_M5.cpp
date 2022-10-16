@@ -40,29 +40,28 @@ struct DT{
 };
 
 int main(int argc, char* argv[]){
-	if(argc != 2){
-		printf("Please input in form of: [0-2 for different settings]");
+	if(argc != 2 and argc!=3){
+		printf("Please input in form of: [0-4 for different settings or larger than 5 for memeory size]");
 		return -1;
 	}
+	long rb=1000000;
+	if(argc==3)rb=atol(argv[2]);
 	int isSparse[30] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	long feature = 30;
 	long no = 30490;
 	long classes = 2;
 	double forgetRate = 0.1;
+	long memSize = 100483;
 	DecisionTree* test;
+	long maxH = 17;
        	if(atol(argv[1])==1){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0.1, feature, classes, Evaluation::gini, -1);
-	}else if(atol(argv[1])==4){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0, feature, classes, Evaluation::gini, -1);
-	}else if(atol(argv[1])==3){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0.1, feature, classes, Evaluation::gini, -1);
-		test->Rebuild = true;
+		test = new DecisionTree(maxH, feature, (int*)isSparse, 0.1, feature, classes, Evaluation::gini, memSize, 1);
 	}else if(atol(argv[1])==0){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0.05, feature, classes, Evaluation::gini, -1);
-	}else if(atol(argv[1])==2){
-		test = new DecisionTree(8, feature, (int*)isSparse, 0.2, feature, classes, Evaluation::gini, -1);
+		int tmp=maxH;
+		if(argc==3)tmp = atoi(argv[2]);
+		test = new DecisionTree(tmp, feature, (int*)isSparse, 0.1, feature, classes, Evaluation::gini, memSize, 2147483647);
 	}else{
-		test = new DecisionTree(8, feature, (int*)isSparse, 0, feature, classes, Evaluation::gini, atol(argv[1]));
+		test = new DecisionTree(18, feature, (int*)isSparse, 0, feature, classes, Evaluation::gini, 300000, 2147483647);
 	}
 	double** data;
 	long* result;
@@ -102,12 +101,19 @@ int main(int argc, char* argv[]){
 		}
 		infile.close();
 		if(i>=20){
-        		for(j=0; j<c; j++){
+        	//if(i>=1){
+			for(j=0; j<c; j++){
 				all++;
                 		if(test->Test(data[j], test->DTree)==result[j])T++;
         		}
+			//printf("%f %ld %ld\n", (double)T/all,  test->DTree->size, test->maxHeight);
+			//T = 0;
+			//all =0;
 		}
 		if(i!=132){
+			//int tmp2 = sqrt(sqrt(test->DTree->size+c));
+			//test->maxHeight = tmp2;
+			//if(tmp2>18)return 0;
 			start = clock();
 			test->fit(data, result, c);	
 			tmp = (double)(clock()-start)/CLOCKS_PER_SEC;

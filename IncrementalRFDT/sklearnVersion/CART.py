@@ -22,7 +22,7 @@ def Phi():
         X.append(a[:-1])
         y.append(int(a[-1]))
     before = time.time()
-    dt = train(X[:1000], y[:1000])
+    dt = train(X[:400], y[:400])
     print(time.time()-before)
     
     TF = 0
@@ -58,7 +58,7 @@ def Elec():
         y.extend(result)
         
     before = time.time()
-    dt = train(X[:3469], y[:3469])
+    dt = train(X[:400], y[:400])
     print(str(time.time()-before))
 
     T = 0
@@ -91,7 +91,7 @@ def Elec():
 def M5():
     X = []
     y = []
-    for i in range(0, 30):
+    for i in range(0, 20):
         f = open("../M5/day_"+str(i), "r")
         data = []
         result = []
@@ -108,20 +108,14 @@ def M5():
         #before = time.time()
         X.extend(data)
         y.extend(result)
+    print(len(X))
     before = time.time()
-    dt = train(X[:146062], y[:146062])
+    dt = train(X[:210000], y[:210000])
     print(str(time.time()-before))
 
     T = 0
     TF = 0
-    data = X[146062:]
-    result = y[146062:]
-    x = dt.predict(data)
-    for j in range(len(x)):
-        if x[j]==result[j]:
-            T+=1
-    TF+=len(x)
-    for i in range(21, 133):
+    for i in range(20, 133):
         f = open("../M5/day_"+str(i), "r")
         data = []
         result = []
@@ -147,9 +141,9 @@ def M5():
 lastX = 0
 
 def Cov():
-    f = open("../Synthetic/covtype", "r")
+    f = open("../covtype/covtype", "r")
     X, y = [], []
-    for i in range(581012):
+    for i in range(581011):
         l = f.readline()[:-1]
         a = l.split(" ")
         a = [float(i) for i in a]
@@ -158,32 +152,77 @@ def Cov():
     
     data = []
     result = []
-    aaa = 581012
+    aaa = 581011
 
-    if(1):
-        t = time.time()
-        dt = train(X[:10000], y[:10000])
-        print(time.time()-t)
-    else:
-        for i in range(int(aaa/400)):
-            before = time.time()
-            data.extend(X[i*400:min(i*400+400, aaa)])
-            result.extend(y[i*400:min(i*400+400, aaa)])
-            dt = train(np.array(data), np.array(result))
-            after = time.time()
-            print(after-before)
+    t = time.time()
+    dt = train(X[:400], y[:400])
+    print(time.time()-t)
 
     #dt = train(np.array(data), np.array(result))
    
-    xx = dt.predict(X[20000:])
-    y = y[20000:]
+    xx = dt.predict(X[2000:])
+    y = y[2000:]
     yy = 0
-    for i in range(561012):
+    for i in range(561011):
         if xx[i] == y[i]:
             yy+=1
-    print(yy/(561012))
+    print(yy/(561011))
 
-x = [0, 1, 2, 3]
+def Gradual():
+    f = open("../mixed/mixed_0101_gradual.csv", "r")
+    X, y = [], []
+    for i in range(41000):
+        l = f.readline()[:-1]
+        a = l.split(" ")
+        a = [float(i) for i in a]
+        X.append(a[:-1])
+        y.append(int(a[-1]))
+    
+    data = []
+    result = []
+
+    t = time.time()
+    dt = train(X[:400], y[:400])
+    print(time.time()-t)
+
+    #dt = train(np.array(data), np.array(result))
+   
+    xx = dt.predict(X[2000:])
+    y = y[2000:]
+    yy = 0
+    for i in range(39000):
+        if xx[i] == y[i]:
+            yy+=1
+    print(yy/(39000))
+
+def Abrupto():
+    f = open("../mixed/mixed_0101_abrupto.csv", "r")
+    X, y = [], []
+    for i in range(40000):
+        l = f.readline()[:-1]
+        a = l.split(" ")
+        a = [float(i) for i in a]
+        X.append(a[:-1])
+        y.append(int(a[-1]))
+    
+    data = []
+    result = []
+
+    t = time.time()
+    dt = train(X[:400], y[:400])
+    print(time.time()-t)
+
+    #dt = train(np.array(data), np.array(result))
+   
+    xx = dt.predict(X[2000:])
+    y = y[2000:]
+    yy = 0
+    for i in range(38000):
+        if xx[i] == y[i]:
+            yy+=1
+    print(yy/(38000))
+
+x = [4, 5]
 if 0 in x:
     print("covtype:")
     Cov()
@@ -195,24 +234,40 @@ if 0 in x:
 if 1 in x:
     print("M5:")
     M5()
-    #M5()
-    #M5()
-    #M5()
-    #M5()
-    #M5()
+    M5()
+    M5()
+    M5()
+    M5()
+    M5()
 if 2 in x:
     print("Elec:")
     Elec()
-    #Elec()
-    #Elec()
-    #Elec()
-    #Elec()
-    #Elec()
+    Elec()
+    Elec()
+    Elec()
+    Elec()
+    Elec()
 if 3 in x:
     print("phishing:")
     Phi()
-    #Phi()
-    #Phi()
-    #Phi()
-    #Phi()
-    #Phi()
+    Phi()
+    Phi()
+    Phi()
+    Phi()
+    Phi()
+if 4 in x:
+    print("gradual:")
+    Gradual()
+    Gradual()
+    Gradual()
+    Gradual()
+    Gradual()
+    Gradual()
+if 5 in x:
+    print("abrupto:")
+    Abrupto()
+    Abrupto()
+    Abrupto()
+    Abrupto()
+    Abrupto()
+    Abrupto()

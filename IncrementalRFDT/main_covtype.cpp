@@ -31,17 +31,20 @@ struct DT{
 };
 
 int main(int argc, char* argv[]){
-	if(argc!=3){
-		printf("Please input parameters: [0 for random forest or 1 for decision tree] [0 to 2 for different settings]\n");
+	if(argc!=3 and argc!=4){
+		printf("Please input parameters: [0 for random forest or 1 for decision tree] [0 to 1 for different settings or >2 for memory size]\n");
 		return -1;
 	}
+	long rb=100000;
+	if(argc==4)rb=atol(argv[3]);
         long i,j,k, kkk=0;
-        long frag = 1000;
+        long frag = 400;
         long size = 581012;
         long no = size/frag+1;
         long noClasses = 7;
         long feature = 54;
         double*** data;
+	long memSize = 10000;
         long** result;
         int isSparse[54] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         char buf[1024] = { 0 };
@@ -68,11 +71,17 @@ int main(int argc, char* argv[]){
         clock_t start,end;
         if(argv[1][0]=='0'){
 		RandomForest* test;
-		if(argv[2][0]=='0'){
-        		test = new RandomForest(50, 20, 5, 8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini);
+		long maxF = 16;
+		if(atol(argv[2])==0){
+        		test = new RandomForest(10, 10, 5, 6, feature, isSparse, 0.1, 8, noClasses, Evaluation::gini, 400);
+		}else if(atol(argv[2])==1){
+			if(argc==4)maxF = atol(argv[3]);
+        		test = new RandomForest(9, 9, 5, 6, feature, isSparse, 0.1, maxF, noClasses, Evaluation::gini, memSize);
 		}else{
-        		test = new RandomForest(20, 20, 5, 8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini);
-		}
+                        long totalQueue = atol(argv[2]);
+                        if (argc==4)totalQueue = atol(argv[3]);
+                        test = new RandomForest(totalQueue, atol(argv[2]), 5, 8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, memSize);
+                }
         	for(kkk=0;kkk<no;kkk++){
                 	if(kkk>=20){
 				if(kkk == no-1){
@@ -96,18 +105,12 @@ int main(int argc, char* argv[]){
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
 	        if(atoi(argv[2])==1){
-			test= new DecisionTree(8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==4){
-			test= new DecisionTree(8, feature, isSparse, 0, feature, noClasses, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==3){
-			test= new DecisionTree(8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, -1);
-			test->Rebuild = true;
+			test= new DecisionTree(6, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, 400, 1);
 		}else if(atoi(argv[2])==0){
-			test= new DecisionTree(8, feature, isSparse, 0.05, feature, noClasses, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==2){
-			test= new DecisionTree(8, feature, isSparse, 0.2, feature, noClasses, Evaluation::gini, -1);	
+			int tmp = 6;
+			test= new DecisionTree(6, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, 400, 2147483647);
 		}else{
-			test= new DecisionTree(8, feature, isSparse, 0.2, feature, noClasses, Evaluation::gini, atol(argv[2]));	
+			test= new DecisionTree(10, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, atol(argv[2]), rb);	
 		}
 		long maxSize = 0;
         	for(kkk=0;kkk<no;kkk++){

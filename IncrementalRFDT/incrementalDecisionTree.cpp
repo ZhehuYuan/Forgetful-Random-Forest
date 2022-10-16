@@ -7,6 +7,10 @@
 #include <fstream>
 #include <float.h>
 #include <ctime>
+#include <random>
+
+std::random_device rd;
+std::mt19937 g(rd());
 
 struct minEval{
 	double value;
@@ -54,7 +58,7 @@ long* Rands(long feature, long maxFeature){
 	if(maxFeature==feature){
 		return ret;
 	}
-	std::random_shuffle(ret, &ret[feature]);
+	std::shuffle(ret, &ret[feature], g);
 	long* ret2 = (long*) malloc(maxFeature*sizeof(long)); 
 	for(i=0; i<maxFeature; i++)ret2[i] = ret[i];
 	free(ret);
@@ -136,7 +140,7 @@ void freeTree(DT* t){
 	free(t);
 }
 
-DecisionTree::DecisionTree(int height, long f, int* sparse, double forget=0.1, long maxF=0, long noClasses=2, Evaluation e=Evaluation::gini, long r=-1){
+DecisionTree::DecisionTree(int height, long f, int* sparse, double forget=0.1, long maxF=0, long noClasses=2, Evaluation e=Evaluation::gini, long r=-1, long rb=1){
 	evalue = e;
 	called = 0;	
 	long i;
@@ -167,7 +171,8 @@ DecisionTree::DecisionTree(int height, long f, int* sparse, double forget=0.1, l
 	//DTree->featureId = Rands();
 	//DTree->sorted = (long**) malloc(f*sizeof(long*));
 	// Number of classes of this dataset
-	Rebuild = false;
+	Rebuild = rb;
+	roundNo = 0;
 	classes = std::max(noClasses, (long)2);
 	//DTree->T = (long*) malloc(noClasses*sizeof(long));
 	/*for(long i = 0; i<noClasses; i++){
@@ -186,7 +191,8 @@ void DecisionTree::Free(){
 
 minEval DecisionTree::incrementalMinGiniSparse(double** dataTotal, long* resultTotal, long sizeTotal, long sizeNew, DT* current, long col, long forgetSize, bool isRoot){
 	long i, j;
-	if(isRoot){sizeNew=sizeTotal-forgetSize;}
+	//if(isRoot){
+	//}
 	long newD[sizeNew];
 	for(i=0; i<sizeNew; i++)newD[i]=i;
 	long T[classes];
@@ -197,14 +203,20 @@ minEval DecisionTree::incrementalMinGiniSparse(double** dataTotal, long* resultT
 	long p1=0, p2=0;
 	double* oldData = current->sortedData[col];
 	long* oldResult = current->sortedResult[col];
+	long tmp2 = forgetSize;
 	for(i=0; i<sizeTotal; i++){
 		if(p1==sizeNew){
-			newSortedData[i] = oldData[p2];
-			newSortedResult[i] = oldResult[p2];
-			T[newSortedResult[i]]++;
+			if(rand()%(sizeTotal+forgetSize-i)<forgetSize){
+				forgetSize--;
+				i--;
+			}else{
+				newSortedData[i] = oldData[p2];
+				newSortedResult[i] = oldResult[p2];
+				T[newSortedResult[i]]++;
+			}
 			p2++;
 		}
-		else if(p2==sizeTotal-sizeNew){
+		else if(p2==sizeTotal+tmp2-sizeNew-forgetSize){
 			newSortedData[i] = dataTotal[newD[p1]][col];
 			newSortedResult[i] = resultTotal[newD[p1]];
 			T[newSortedResult[i]]++;
@@ -216,9 +228,14 @@ minEval DecisionTree::incrementalMinGiniSparse(double** dataTotal, long* resultT
 			T[newSortedResult[i]]++;
 			p1++;
 		}else{
-			newSortedData[i] = oldData[p2];
-			newSortedResult[i] = oldResult[p2];
-			T[newSortedResult[i]]++;
+			if(rand()%(sizeTotal+forgetSize-i)<forgetSize){
+				forgetSize--;
+				i--;
+			}else{
+				newSortedData[i] = oldData[p2];
+				newSortedResult[i] = oldResult[p2];
+				T[newSortedResult[i]]++;
+			}
 			p2++;
 		}
 	}
@@ -226,7 +243,6 @@ minEval DecisionTree::incrementalMinGiniSparse(double** dataTotal, long* resultT
 	current->sortedResult[col] = newSortedResult;
 	free(oldData);
 	free(oldResult);
-
 	minEval ret;
 	if(evalue == Evaluation::gini){
 		ret = giniSparseIncremental(sizeTotal, classes, newSortedData, newSortedResult, T);
@@ -239,8 +255,8 @@ minEval DecisionTree::incrementalMinGiniSparse(double** dataTotal, long* resultT
 minEval DecisionTree::incrementalMinGiniDense(double** data, long* result, long size, long col, long*** count, double** record, long* max, long newSize, long forgetSize, bool isRoot){
 	// newSize is before forget 
 	long low = 0;
-	if(isRoot)size=newSize-forgetSize;
-	long i, j, k;
+	//if(isRoot)
+	long i, j, k, tmp;
 	long newMax = 0;
 	long maxLocal = max[col];
 	long **newCount=(long**)malloc(size*sizeof(long*));
@@ -250,14 +266,26 @@ minEval DecisionTree::incrementalMinGiniDense(double** data, long* result, long 
 	}
 	double newRecord[size];
 	bool find;
-
+	long tmp3 = newSize-size;
+	long tmp4 = forgetSize;
 	// find total count for each class
 	long T[classes];
+	long dataLeft = newSize+forgetSize-size;
+	long tmp2=0;
 	for(i=0;i<classes;i++)T[i]=0;
 	for(i=0;i<max[col];i++){
 		for(j=0;j<classes;j++){
-			if(isRoot)count[col][i][j]=0;
-			else if(T[j]<count[col][i][j])T[j]=count[col][i][j];
+			tmp = count[col][i][j];
+			tmp2+=tmp;
+			for(k=0; k<tmp; k++){
+				if(forgetSize==0)break;
+				if(rand()%dataLeft<forgetSize){
+					forgetSize--;
+					count[col][i][j]--;
+				}
+				dataLeft--;
+			}
+			if(T[j]<count[col][i][j])T[j]=count[col][i][j];
 		}
 	}
 	
@@ -427,6 +455,7 @@ minEval DecisionTree::findMinGiniDense(double** data, long* result, long* totalT
 
 double xxx;
 void DecisionTree::fit(double** data, long* result, long size){
+	roundNo++;
 	if(DTree->size==0){
 		Update(data, result, size, DTree);
 	}else{
@@ -458,6 +487,10 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	long forgetSize=0;
        	if(retain>0 and current->size+size>retain) forgetSize = std::min(current->size+size - retain, current->size);
 	else if(retain<0) forgetSize = (long)current->size*forgetRate;
+	if(forgetSize==current->size){
+		Update(data, result, size, current);
+		return;
+	}
 	long* index = new long[current->size];
 	double** dataNew;
 	long* resultNew;
@@ -471,7 +504,7 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 		for(i=0; i<current->size; i++){
 			index[i] = i;
 		}
-		std::random_shuffle(index, index+current->size);
+		std::shuffle(index, index+current->size, g);
 		long x = 0;
 		for(i=0;i<current->size;i++){
 			if(i>=current->size-forgetSize){
@@ -505,13 +538,13 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	current->size -= forgetSize;
 	current->size += size;
 	// end condition
-	if(current->terminate or Rebuild){
+	if(current->terminate or roundNo%Rebuild==0){
 		if(current->height == 0){
 			for(i=0; i<forgetSize; i++){
 				free(current->dataRecord[index[current->size-size+i]]);
 			}
 		}
-		delete(index);
+		delete[](index);
 		Update(dataNew, resultNew, current->size, current);
 		return;
 	}
@@ -520,13 +553,21 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	long cFeature;
 	cMin.eval = DBL_MAX;
 	cMin.values = nullptr;
-	// TODO
+	long T[classes];
+	for(i=0;i<classes;i++){
+		T[i] = 0;
+	}
+	for(i=0;i<size;i++){
+		j = resultNew[i];
+		T[j]++;
+	}
 	for(i=0;i<maxFeature; i++){
 		if(Sparse[current->featureId[i]]==1){
-			c = incrementalMinGiniSparse(dataNew, resultNew, current->size+forgetSize, size, current, current->featureId[i], forgetSize, current->height==0);
+			c = incrementalMinGiniSparse(dataNew, resultNew, current->size, size, current, current->featureId[i], forgetSize, false);
+			//c = findMinGiniSparse(dataNew, resultNew, T, current->size, current->featureId[i], current);
 		}
 		else if(Sparse[current->featureId[i]]==0){
-			c = incrementalMinGiniDense(dataNew, resultNew, size, current->featureId[i], current->count, current->record, current->max, current->size+forgetSize, forgetSize, current->height==0);
+			c = incrementalMinGiniDense(dataNew, resultNew, size, current->featureId[i], current->count, current->record, current->max, current->size, forgetSize, false);
 		}else{
 			//c = incrementalMinGiniCategorical();
 		}
@@ -545,7 +586,7 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 			t[i]=0;
 		}
 		for(i=low;i<low+size;i++){
-			t[result[i]]++;
+			t[resultNew[i]]++;
 		}
 		if(cMin.values!=nullptr)free(cMin.values);
 		current->result = std::distance(t, std::max_element(t, t+classes));
@@ -555,7 +596,6 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
         long ptL=0, ptR=0;
 	double* t;
 	long currentSize = current->size;
-	//TODO:Discrete
 	// Same diverse point as last time
 	if(current->dpoint==cMin.value and current->feature==cFeature){
 		long xxx = current->left->size;
@@ -593,7 +633,7 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 				free(current->dataRecord[index[current->size-size+i]]);
 			}
 		}
-		delete(index);
+		delete[](index);
 		free(current->dataRecord);
 		free(current->resultRecord);
 		current->dataRecord = dataNew;
@@ -637,7 +677,7 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 		}
 	}
 	
-	delete(index);
+	delete[](index);
 	free(current->dataRecord);
 	free(current->resultRecord);
 	current->dataRecord = dataNew;
@@ -658,7 +698,7 @@ void DecisionTree::Update(double** data, long* result, long size, DT* current){
 		for(i=0;i<classes;i++){
 			t[i]=0;
 		}
-		for(i=low;i<low+size;i++){
+		for(i=0;i<size;i++){
 			t[result[i]]++;
 		}
 		current->result = std::distance(t, std::max_element(t, t+classes));
@@ -752,7 +792,7 @@ void DecisionTree::Update(double** data, long* result, long size, DT* current){
 }
 
 long DecisionTree::Test(double* data, DT* root){
-	if(root->terminate)return root->result;
+	if(root->terminate or root->height == maxHeight)return root->result;
 	if(data[root->feature]<=root->dpoint)return Test(data, root->left);
 	return Test(data, root->right);
 }

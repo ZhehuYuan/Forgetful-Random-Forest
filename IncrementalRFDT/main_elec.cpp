@@ -40,16 +40,20 @@ struct DT{
 };
 
 int main(int argc, char* argv[]){
-	if(argc!=3){
+	if(argc!=3 and argc!=4){
                 printf("Please input parameters: [0 for random forest or 1 for decision tree] [0 to 2 for different settings]\n");
                 return -1;
         }
+	long rb=10000000;
+	long memSize = 1500;
+	if(argc==4)rb=atol(argv[3]);
 	int isSparse[7] = {0, 1, 1, 1, 1, 1, 1};
 	long feature = 7;
 	long no = 2000;
 	long classes = 2;
 	double forgetRate = 0.1;
-	
+	int maxH=8;	
+
 	double** data;
 	long* result;
 	char buf[1024] = { 0 };
@@ -67,10 +71,16 @@ int main(int argc, char* argv[]){
 	long T = 0, all = 0;
 	if(argv[1][0]=='0'){
 		RandomForest* test;
-	       	if(argv[2][0]=='0'){
-			test = new RandomForest(50, 20, 5, 8, feature, (int*)isSparse, forgetRate, 7, classes, Evaluation::gini);
+		long maxF = 3;
+	       	if(atoi(argv[2])==0){
+			test = new RandomForest(10, 10, 5, 6, feature, (int*)isSparse, forgetRate, 3, classes, Evaluation::gini, 400);
+		}else if(atoi(argv[2])==1){
+			if (argc==4)maxF = atol(argv[3]);
+			test = new RandomForest(4, 4, 5, maxH, feature, (int*)isSparse, forgetRate, maxF, classes, Evaluation::gini, memSize);
 		}else{
-			test = new RandomForest(20, 20, 5, 8, feature, (int*)isSparse, forgetRate, 7, classes, Evaluation::gini);
+			long totalQueue = atol(argv[2]);
+			if (argc==4)totalQueue = atol(argv[3]);
+			test = new RandomForest(totalQueue, atol(argv[2]), 5, 8, feature, (int*)isSparse, forgetRate, feature, classes, Evaluation::gini, memSize);
 		}
 		for(i = 1; i<944; i++){
 			if(i%7==1){
@@ -115,19 +125,12 @@ int main(int argc, char* argv[]){
 	}
 	else if(argv[1][0]=='1'){
 		DecisionTree* test;
-	       	if(atoi(argv[2])==0){
-			test = new DecisionTree(8, feature, isSparse, 0.1, feature, classes, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==1){
-			test = new DecisionTree(8, feature, isSparse, 0, feature, classes, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==2){
-			test = new DecisionTree(8, feature, isSparse, 0.1, feature, classes, Evaluation::gini, -1);
-			test->Rebuild = true;
-		}else if(atoi(argv[2])==3){
-			test = new DecisionTree(8, feature, isSparse, 0.05, feature, classes, Evaluation::gini, -1);
-		}else if(atoi(argv[2])==4){
-			test = new DecisionTree(8, feature, isSparse, 0.2, feature, classes, Evaluation::gini, -1);
+	       	if(atoi(argv[2])==1){
+			test = new DecisionTree(6, feature, isSparse, 0.1, feature, classes, Evaluation::gini, 400, 1);
+		}else if(atoi(argv[2])==0){
+			test = new DecisionTree(6, feature, isSparse, 0.1, feature, classes, Evaluation::gini, 400, 2147483647);
 		}else{
-			test = new DecisionTree(8, feature, isSparse, 0.2, feature, classes, Evaluation::gini, atol(argv[2]));
+			test = new DecisionTree(15, feature, isSparse, 0, feature, classes, Evaluation::gini, 2147483647, 2147483647);
 		}
 		long maxSize = 0;
 		for(i = 1; i<944; i++){
@@ -157,12 +160,17 @@ int main(int argc, char* argv[]){
 			infile.close();
 			if(i%7==0 or i==943){
 				if(i>140){
+				//if(i>7){
         				for(j=0; j<c; j++){
 						if(test->Test(data[j], test->DTree)==result[j])T++;
 						all++;
         				}
+					//printf("%f %ld %ld\n", (double)result/all, test->DTree->size, test->maxHeight);
+                                        //result = 0;
+                                        //all = 0;
 				}
 				if(i!=943){
+					//test->maxHeight = sqrt(sqrt(test->DTree->size+c));
 					start = clock();
 					test->fit(data, result, c);
 					tmp = (double)(clock()-start)/CLOCKS_PER_SEC;
@@ -171,6 +179,6 @@ int main(int argc, char* argv[]){
 				}
 			}
 		}
-		printf("%f\n%f\n%ld\n", timeTaken, (double)T/all, maxSize);
+		printf("%f\n%f\n", timeTaken, (double)T/all);
 	}
 }

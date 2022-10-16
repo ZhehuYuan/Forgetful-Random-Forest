@@ -23,11 +23,12 @@ long classes;
 int* Sparse;
 double forgetRate;
 Evaluation evalue;
-bool Rebuild;
+long Rebuild;
+long roundNo;
 long called;
 long retain;
 
-DecisionTree(int hight, long f, int* sparse, double forget, long maxFeature, long noClasses, Evaluation e, long r);
+DecisionTree(int hight, long f, int* sparse, double forget, long maxFeature, long noClasses, Evaluation e, long r, long rb);
 
 void Stablelize();
 

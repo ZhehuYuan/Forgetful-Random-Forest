@@ -58,7 +58,8 @@ int main(int argc, char* argv[]){
                 result[i] = (long*)malloc(frag*sizeof(long));
         }
         for(i=0;i<size;i++){
-                data[i/frag][i%frag] = (double*)malloc((feature)*sizeof(double));
+                data[i/frag][i%frag] = (double*)malloc((feature+1)*sizeof(double));
+		data[i/frag][i%frag][feature] = 0;
                 for(j=0;j<feature;j++){
                         infile>>buf;
                         data[i/frag][i%frag][j] = atof(buf);
@@ -71,18 +72,10 @@ int main(int argc, char* argv[]){
         clock_t start,end;
         if(argv[1][0]=='0'){
 		RandomForest* test;
-		long maxF = 16;
 		if(atol(argv[2])==0){
-        		test = new RandomForest(10, 10, 5, 6, feature, isSparse, 0.1, 8, noClasses, Evaluation::gini, 400);
-		}else if(atol(argv[2])==1){
-			if(argc==4)maxF = atol(argv[3]);
-        		test = new RandomForest(9, 9, 5, 6, feature, isSparse, 0.1, maxF, noClasses, Evaluation::gini, memSize);
-		}else{
-                        long totalQueue = atol(argv[2]);
-                        if (argc==4)totalQueue = atol(argv[3]);
-                        test = new RandomForest(totalQueue, atol(argv[2]), 5, 8, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, memSize);
-                }
-        	for(kkk=0;kkk<no;kkk++){
+        		test = new RandomForest(10, 10, feature, isSparse, -10.0, noClasses, Evaluation::gini);
+		}
+		for(kkk=0;kkk<no;kkk++){
                 	if(kkk>=20){
 				if(kkk == no-1){
 					for(i=0; i<size-kkk*frag;i++){
@@ -104,13 +97,10 @@ int main(int argc, char* argv[]){
 		}
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
-	        if(atoi(argv[2])==1){
-			test= new DecisionTree(6, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, 400, 1);
-		}else if(atoi(argv[2])==0){
-			int tmp = 6;
-			test= new DecisionTree(6, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, 400, 2147483647);
+	        if(atoi(argv[2])==0){
+			test= new DecisionTree(10, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, 2147483647);
 		}else{
-			test= new DecisionTree(10, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, atol(argv[2]), rb);	
+			test= new DecisionTree(10, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, rb);	
 		}
 		long maxSize = 0;
         	for(kkk=0;kkk<no;kkk++){

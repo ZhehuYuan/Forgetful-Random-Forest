@@ -44,7 +44,7 @@ int main(int argc, char* argv[]){
                 printf("Please input parameters: [0 for random forest or 1 for decision tree] [0 to 2 for different settings]\n");
                 return -1;
         }
-	long rb=10000000;
+	long rb=2147483647;
 	long memSize = 1500;
 	if(argc==4)rb=atol(argv[3]);
 	int isSparse[7] = {0, 1, 1, 1, 1, 1, 1};
@@ -73,24 +73,16 @@ int main(int argc, char* argv[]){
 		RandomForest* test;
 		long maxF = 3;
 	       	if(atoi(argv[2])==0){
-			test = new RandomForest(10, 10, 5, 6, feature, (int*)isSparse, forgetRate, 3, classes, Evaluation::gini, 400);
-		}else if(atoi(argv[2])==1){
-			if (argc==4)maxF = atol(argv[3]);
-			test = new RandomForest(4, 4, 5, maxH, feature, (int*)isSparse, forgetRate, maxF, classes, Evaluation::gini, memSize);
-		}else{
-			long totalQueue = atol(argv[2]);
-			if (argc==4)totalQueue = atol(argv[3]);
-			test = new RandomForest(totalQueue, atol(argv[2]), 5, 8, feature, (int*)isSparse, forgetRate, feature, classes, Evaluation::gini, memSize);
+			test = new RandomForest(10, 10, feature, (int*)isSparse, -10.0, classes, Evaluation::gini);
 		}
 		for(i = 1; i<944; i++){
-			if(i%7==1){
-				data = (double**)malloc(no*sizeof(double*));
-				result = (long*)malloc(no*sizeof(long));
-				c=0;
-			}
+			data = (double**)malloc(no*sizeof(double*));
+			result = (long*)malloc(no*sizeof(long));
+			c=0;
         		infile.open(str+std::to_string(i)+str2, std::ios::in);
 			while(1){
-				data[c] = (double*)malloc(feature*sizeof(double));
+				data[c] = (double*)malloc((feature+1)*sizeof(double));
+				data[c][feature] = 0;
 				for(long j=0; j<feature; j++){
 					infile >> buf;
 					data[c][j] = atof(buf); 
@@ -107,9 +99,8 @@ int main(int argc, char* argv[]){
 				}
 			}
 			infile.close();
-			if(i%7!=0 and i!=943)continue;
-			if(i>140){
-        			for(j=0; j<c; j++){
+        		if(i>20){
+				for(j=0; j<c; j++){
 					if(test->Test(data[j])==result[j])T++;
 					all++;
         			}
@@ -125,23 +116,22 @@ int main(int argc, char* argv[]){
 	}
 	else if(argv[1][0]=='1'){
 		DecisionTree* test;
-	       	if(atoi(argv[2])==1){
-			test = new DecisionTree(6, feature, isSparse, 0.1, feature, classes, Evaluation::gini, 400, 1);
-		}else if(atoi(argv[2])==0){
-			test = new DecisionTree(6, feature, isSparse, 0.1, feature, classes, Evaluation::gini, 400, 2147483647);
+	       	if(atoi(argv[2])==0){
+			test = new DecisionTree(10, feature, isSparse, -10.0, feature, classes, Evaluation::gini, 2147483647);
 		}else{
-			test = new DecisionTree(15, feature, isSparse, 0, feature, classes, Evaluation::gini, 2147483647, 2147483647);
+			test = new DecisionTree(10, feature, isSparse, 0, feature, classes, Evaluation::gini, 2147483647);
 		}
 		long maxSize = 0;
+		long lastT=0;
+		long lastAll=0;
 		for(i = 1; i<944; i++){
-			if(i%7==1){
-				data = (double**)malloc(no*sizeof(double*));
-				result = (long*)malloc(no*sizeof(long));
-				c=0;
-			}
+			data = (double**)malloc(no*sizeof(double*));
+			result = (long*)malloc(no*sizeof(long));
+			c=0;
         		infile.open(str+std::to_string(i)+str2, std::ios::in);
 			while(1){
-				data[c] = (double*)malloc(feature*sizeof(double));
+				data[c] = (double*)malloc((feature+1)*sizeof(double));
+				data[c][feature] = 0;
 				for(long j=0; j<feature; j++){
 					infile >> buf;
 					data[c][j] = atof(buf); 
@@ -158,27 +148,25 @@ int main(int argc, char* argv[]){
 				}
 			}
 			infile.close();
-			if(i%7==0 or i==943){
-				if(i>140){
-				//if(i>7){
-        				for(j=0; j<c; j++){
-						if(test->Test(data[j], test->DTree)==result[j])T++;
-						all++;
-        				}
-					//printf("%f %ld %ld\n", (double)result/all, test->DTree->size, test->maxHeight);
-                                        //result = 0;
-                                        //all = 0;
-				}
-				if(i!=943){
-					//test->maxHeight = sqrt(sqrt(test->DTree->size+c));
-					start = clock();
-					test->fit(data, result, c);
-					tmp = (double)(clock()-start)/CLOCKS_PER_SEC;
-					timeTaken += tmp;
-					if (maxSize<test->DTree->size)maxSize=test->DTree->size;
-				}
+			long localT = 0;
+			long localAll = 0;
+        		if(i>20){
+				for(j=0; j<c; j++){
+					if(test->Test(data[j], test->DTree)==result[j])localT++;
+					localAll++;
+        			}
+				all+=localAll;
+				T+=localT;
+			}
+			if(i!=943){
+				start = clock();
+				test->fit(data, result, c);
+				tmp = (double)(clock()-start)/CLOCKS_PER_SEC;
+				timeTaken += tmp;
+				if (maxSize<test->DTree->size)maxSize=test->DTree->size;
 			}
 		}
+		printf("%ld\n", maxSize);
 		printf("%f\n%f\n", timeTaken, (double)T/all);
 	}
 }

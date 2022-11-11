@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctime>
+#include <math.h>
+#include <algorithm>
+
 
 struct DT{
         int height;
@@ -30,62 +33,69 @@ struct DT{
         long size = 0;// Size of the dataset
 };
 
-RandomForest::RandomForest(long mTree, long actTree, long rTime, int h, long feature, int* s, double forg, long maxF, long noC, Evaluation eval, long r, long rb){
+RandomForest::RandomForest(long mTree, int h, long feature, int* s, double forg, long noC, Evaluation eval, long rb){
 	srand((long)clock());
 	Rebuild = rb;
-	if(actTree<1)actTree=1;
-	noTree = actTree;
-	activeTree = actTree;
-	treePointer = 0;
-	if(mTree<actTree)mTree=activeTree;
+	activeTree = mTree;
 	maxTree = mTree;
-	if(rTime<=0)rTime=1;
-	rotateTime = rTime;
-	timer = 0;
-	retain = r;	
+	treePointer = new bool[mTree];
+	allT = new long[mTree];
 
+	lastAcc = -1.0;
 	long i;
 	height = h;
 	f = feature;
 	sparse = new int[f];
 	for(i=0; i<f; i++)sparse[i]=s[i];
 	forget = forg;
-	maxFeature = maxF;
 	noClasses = noC;
 	e = eval;
+	minF = floor(sqrt((double)f))+1;
 
 	DTrees = (DecisionTree**)malloc(mTree*sizeof(DecisionTree*));
-	for(i=0; i<mTree; i++){
-		if(i<actTree){
-			DTrees[i] = new DecisionTree(height, f, sparse, forget, maxFeature, noClasses, e, r, rb);
-		}
-		else{
-			DTrees[i]=nullptr;
-		}
+	for(i=0; i<maxTree; i++){
+		DTrees[i] = new DecisionTree(height, f, sparse, forget, minF+rand()%(f+1-minF), noClasses, e, rb);
+		treePointer[i] = true;
 	}
 }
 
 void RandomForest::fit(double** data, long* result, long size){
-	if(timer==rotateTime and maxTree!=activeTree){
-		Rotate();
-		timer=0;
-	}
 	long i, j, k;
 	double** newData;
 	long* newResult;
-	for(i=0; i<activeTree; i++){
-		newData = new double*[size];
-		newResult = new long[size];
+	long count = 0;
+	int stale = 0;
+	if(lastAcc<0){
+		lastAcc=0.0;
+	}else{
+		for(i=0; i<maxTree; i++)allT[i] = 0;
+		for(i=0; i<size; i++){
+                	if(Test(data[i], result[i])==result[i])count++;
+        	}
+		if(lastAcc>0){
+			double newAcc = (double)count/size;
+			stale = round((newAcc-lastAcc)*maxTree);
+			if(stale==0)stale=1;
+			lastAcc = (double)count/size;
+		}else if(lastAcc==0){
+			lastAcc = (double)count/size;
+		}
+	}
+	Rotate(stale);
+	for(i=0; i<maxTree; i++){
+		if(not treePointer[i])continue;
+		newData = (double**)malloc(sizeof(double*)*size);
+		newResult = (long*)malloc(sizeof(long)*size);
 		for(j = 0; j<size; j++){
-			newData[j] = new double[f];
+			newData[j] = (double*)malloc((f+1)*sizeof(double));
 			for(k=0; k<f; k++){
 				newData[j][k] = data[j][k];
 			}
+			newData[j][f] = 0;
 			newResult[j] = result[j];
 		}
-		DTrees[(i+treePointer)%maxTree]->fit(newData, newResult, size);
+		DTrees[i]->fit(newData, newResult, size);
 	}
-	timer++;
 }
 
 long* RandomForest::fitThenPredict(double** trainData, long* trainResult, long trainSize, double** testData, long testSize){
@@ -97,36 +107,107 @@ long* RandomForest::fitThenPredict(double** trainData, long* trainResult, long t
         return testResult;
 }
 
-void RandomForest::Rotate(){
-	if(noTree==maxTree){
-		DTrees[(treePointer+activeTree)%maxTree]->Free();
-		delete DTrees[(treePointer+activeTree)%maxTree];
+void RandomForest::Rotate(long stale){
+	long i, j, k;
+	long currentMax = -1;
+	long maxIndex = -1;
+	if(stale==0)return;
+	else if(stale>0){
+		stale = std::min(stale, maxTree-activeTree);
+		while(stale>0){
+			for(i = 0; i<maxTree; i++){
+				if(not treePointer[i])continue;
+				if(allT[i]>currentMax){
+					currentMax=allT[i];
+					maxIndex=i;
+				}
+			}
+			stale--;
+			activeTree--;
+			treePointer[maxIndex]=false;
+			DTrees[maxIndex]->Stablelize();
+		}	
 	}else{
-		noTree++;
+		stale = std::min(stale, maxTree);
+		stale*=-1;
+		while(stale>0){
+			long currentMin = 2147483647;
+			long minIndex = -1;
+			for(i = 0; i<maxTree; i++){
+				if(allT[i]<currentMin){
+					currentMin=allT[i];
+					minIndex=i;
+				}
+			}
+			stale--;
+			allT[minIndex] = 2147483647; 
+			double** newData;
+			long* newResult;
+			long size = 0;
+			if(treePointer[minIndex]){
+				size = DTrees[minIndex]->DTree->size;
+				newData = (double**)malloc(sizeof(double*)*size);
+				newResult = (long*)malloc(sizeof(long)*size);
+				for(j = 0; j<size; j++){
+					newData[j] = (double*)malloc(sizeof(double)*(f+1));
+                			for(k=0; k<f+1; k++){
+                        			newData[j][k] = DTrees[minIndex]->DTree->dataRecord[j][k];
+                			}
+                			newResult[j] = DTrees[minIndex]->DTree->resultRecord[j];
+        			}
+				DTrees[minIndex]->Stablelize();
+			}else{
+				for(i = 0; i<maxTree; i++){
+					if(treePointer[i])break;
+				}
+				if(i==maxTree)i--;
+				size = DTrees[i]->DTree->size;
+				newData = (double**)malloc(sizeof(double*)*size);
+				newResult = (long*)malloc(sizeof(long)*size);
+				for(j = 0; j<size; j++){
+					newData[j] = (double*)malloc(sizeof(double)*(f+1));
+                			for(k=0; k<f+1; k++){
+                        			newData[j][k] = DTrees[i]->DTree->dataRecord[j][k];
+                			}
+                			newResult[j] = DTrees[i]->DTree->resultRecord[j];
+        			}
+				treePointer[minIndex] = true;
+				activeTree++;
+			}
+			DTrees[minIndex]->Free();
+			delete DTrees[minIndex];
+			DTrees[minIndex] = new DecisionTree(height, f, sparse, forget, minF+rand()%(f+1-minF), noClasses, e, Rebuild);
+			DTrees[minIndex]->fit(newData, newResult, size);
+		}	
 	}
-	DTrees[(treePointer+activeTree)%maxTree] = new DecisionTree(height, f, sparse, forget, maxFeature, noClasses, e, retain, Rebuild);
-	long size = DTrees[(treePointer+activeTree-1)%maxTree]->DTree->size;
-	double** newData = new double*[size];
-	long* newResult = new long[size];
-	for(long j = 0; j<size; j++){
-		newData[j] = new double[f];
-                for(long k=0; k<f; k++){
-                        newData[j][k] = DTrees[(treePointer+activeTree-1)%maxTree]->DTree->dataRecord[j][k];
-                }
-                newResult[j] = DTrees[(treePointer+activeTree-1)%maxTree]->DTree->resultRecord[j];
-        }
-
-	DTrees[(treePointer+activeTree)%maxTree]->fit(newData, newResult, size);
-	DTrees[treePointer]->Stablelize();
-	if(++treePointer==maxTree)treePointer=0;
 }
 
+
+long RandomForest::Test(double* data, long result){
+	long i;
+	long predict[noClasses];
+	for(i=0; i<noClasses; i++){
+		predict[i]=0;
+	}
+	for(i=0; i<maxTree; i++){
+		long tmp = DTrees[i]->Test(data, DTrees[i]->DTree);
+		predict[tmp]++;
+		if(tmp==result)allT[i]++;
+	}
+	
+	long ret = 0;
+	for(i=1; i<noClasses; i++){
+		if(predict[i]>predict[ret])ret = i;
+	}
+
+	return ret;
+}
 
 long RandomForest::Test(double* data){
 	long i;
 	long predict[noClasses];
 	for(i=0; i<noClasses; i++)predict[i]=0;
-	for(i=0; i<noTree; i++){
+	for(i=0; i<maxTree; i++){
 		predict[DTrees[i]->Test(data, DTrees[i]->DTree)]++;
 	}
 	

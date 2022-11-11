@@ -9,13 +9,12 @@ struct DR;
 
 struct DT;
 
-//enum Evaluation {gini, entropy, logLoss};
-
 class DecisionTree{
 public:
 
 DT* DTree = nullptr;
-int maxHeight;
+long maxHeight;
+long maxHeightUpper;
 long feature;
 long maxFeature;
 long seed;
@@ -27,8 +26,10 @@ long Rebuild;
 long roundNo;
 long called;
 long retain;
+long lastT;
+long lastAll;
 
-DecisionTree(int hight, long f, int* sparse, double forget, long maxFeature, long noClasses, Evaluation e, long r, long rb);
+DecisionTree(int hight, long f, int* sparse, double forget, long maxFeature, long noClasses, Evaluation e, long rb);
 
 void Stablelize();
 
@@ -38,9 +39,9 @@ minEval findMinGiniDense(double** data, long* result, long* totalT, long size, l
 
 minEval findMinGiniSparse(double** data, long* result, long* totalT, long size, long col, DT* current);
 
-minEval incrementalMinGiniDense(double** data, long* result, long size, long col, long*** count, double** record, long* max, long newCount, long forgetSize, bool isRoot);
+minEval incrementalMinGiniDense(double** data, long* result, long size, long col, long*** count, double** record, long* max, long newCount, long forgetSize, double** forgottenData, long* forgottenClass);
 
-minEval incrementalMinGiniSparse(double** dataNew, long* resultNew, long sizeNew, long sizeOld, DT* current, long col, long forgetSize, bool isRoot);
+minEval incrementalMinGiniSparse(double** dataNew, long* resultNew, long sizeNew, long sizeOld, DT* current, long col, long forgetSize, double** forgottenData, long* forgottenClass);
 
 long* fitThenPredict(double** trainData, long* trainResult, long trainSize, double** testData, long testSize);
 

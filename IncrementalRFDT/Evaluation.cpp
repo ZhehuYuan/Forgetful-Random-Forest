@@ -5,14 +5,13 @@
 
 struct minEval{
         double value;
-        double values;
+        int* values;
 
 	double eval;
         long left; // how many on its left
         double* record;
         long max;
         long** count;
-        long* sorted; // sorted d
 };
 
 minEval giniSparse(double** data, long* result, long* d, long size, long col, long classes, long* totalT){
@@ -160,9 +159,9 @@ minEval giniDense(long max, long size, long classes, long** rem, long* d, double
 	double gini1, gini2;
 	long *t, *t2, *r, *r2, i, j;
         for(i=0;i<max;i++){
-                t = rem[d[i]];
+                t = rem[i];
                 if(i>0){
-                        t2 = rem[d[i-1]];
+                        t2 = rem[i-1];
                         for(j=0;j<=classes;j++){
                                 t[j]+=t2[j];
                         }
@@ -180,7 +179,7 @@ minEval giniDense(long max, long size, long classes, long** rem, long* d, double
                 gini1 = (gini1*t[classes])/size + (gini2*(size-t[classes]))/size;
                 if(gini1<ret.eval){
                         ret.eval = gini1;
-                        ret.value = record[d[i]];
+                        ret.value = record[i];
                         ret.left = t[classes];
                 }
 	}
@@ -219,60 +218,4 @@ minEval entropyDense(long max, long size, long classes, long** rem, long* d, dou
                 }
         }
 	return ret;
-}
-
-minEval giniDenseIncremental(long max, double* record, long** count, long classes, long newSize, long* T){
-	double gini1, gini2;
-        minEval ret;
-	long i, j;
-
-	ret.eval = DBL_MAX;
-        for(i=0; i<max; i++){
-                if(count[i][classes]==newSize){
-                        continue;
-                }
-                gini1 = 1.0;
-                gini2 = 1.0;
-                for(j=0;j<classes;j++){
-                        long l, r;
-                        l = count[i][j];
-                        r = T[j]-l;
-                        gini1 -= pow((double)l/count[i][classes], 2);
-                        gini2 -= pow((double)r/(newSize-count[i][classes]), 2);
-                }
-                gini1 = gini1*count[i][classes]/newSize + gini2*((newSize-count[i][classes]))/newSize;
-                if(gini1<ret.eval){
-                        ret.eval = gini1;
-                        ret.value = record[i];
-                }
-        }
-	return ret;
-}
-
-minEval entropyDenseIncremental(long max, double* record, long** count, long classes, long newSize, long* T){
-        double entropy1, entropy2;
-        minEval ret;
-        long i, j;
-
-        ret.eval = DBL_MAX;
-        for(i=0; i<max; i++){
-                if(count[i][classes]==newSize or count[i][classes]==0){
-                        continue;
-                }
-                entropy1 = 0;
-                entropy2 = 0;
-                for(j=0;j<classes;j++){
-                        long l, r;
-                        l = count[i][j];
-                        r = T[j]-l;
-                        entropy1 -= ((double)l/count[i][classes])*log((double)l/count[i][classes]);
-                        entropy2 -= (double)r/(newSize-count[i][classes])*log((double)r/(newSize-count[i][classes]));
-                }
-                entropy1 = entropy1*count[i][classes]/newSize + entropy2*((newSize-count[i][classes]))/newSize;
-                if(entropy1<ret.eval){
-                        ret.eval = entropy1;
-                        ret.value = record[i];
-                }
-        }
-        return ret;
 }

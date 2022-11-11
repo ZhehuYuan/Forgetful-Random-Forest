@@ -64,8 +64,9 @@ int main(int argc, char* argv[]){
         result[no] = (long*)malloc((size-no*frag)*sizeof(long));
 	
         for(i=0;i<size;i++){
-                data[i/frag][i%frag] = (double*)malloc((feature)*sizeof(double));
-                for(j=0;j<feature;j++){
+                data[i/frag][i%frag] = (double*)malloc((feature+1)*sizeof(double));
+                data[i/frag][i%frag][feature] = 0;
+		for(j=0;j<feature;j++){
                         infile>>buf;
                         data[i/frag][i%frag][j] = atof(buf);
                 }
@@ -77,17 +78,9 @@ int main(int argc, char* argv[]){
 	double time=0.0;
         clock_t start,end;
         if(argv[1][0]=='0'){
-		long maxF = 7;
 		RandomForest* test;
 		if(atol(argv[2])==0){
-        		test = new RandomForest(10, 10, 5, 6, feature, isSparse, 0.1, 7, noClasses, Evaluation::gini, 400);
-		}else if(atol(argv[2])==1){
-                        if (argc==4)maxF = atol(argv[3]);
-        		test = new RandomForest(4, 4, 5, maxH, feature, isSparse, 0.1, maxF, noClasses, Evaluation::gini, memSize);
-		}else{
-                        long totalQueue = atol(argv[2]);
-                        if (argc==4)totalQueue = atol(argv[3]);
-                        test = new RandomForest(4, 4, 5, 8, feature, (int*)isSparse, 0.1, feature, noClasses, Evaluation::gini, memSize);
+        		test = new RandomForest(10, 10, feature, isSparse, -10.0, noClasses, Evaluation::gini);
                 }
         	for(kkk=0;kkk<=no;kkk++){
 			if(kkk!=no){
@@ -110,29 +103,20 @@ int main(int argc, char* argv[]){
 		printf("%f\n%f\n", time, (double)count/total);
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
-	        if(atoi(argv[2])==1){
-			test= new DecisionTree(6, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, 400, 1);
-		}else if(atoi(argv[2])==0){
-			//int tmp = maxH;
-			//if(argc==4)tmp = atoi(argv[3]);
-			test= new DecisionTree(6, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, 400, 2147483647);
+		if(atoi(argv[2])==0){
+			test= new DecisionTree(10, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, 2147483647);
 		}else{
-			test= new DecisionTree(15, feature, isSparse, 0, feature, noClasses, Evaluation::gini, 2147483647, 2147483647);	
+			test= new DecisionTree(10, feature, isSparse, 0, feature, noClasses, Evaluation::gini, 2147483647);	
 		}
         	long maxSize = 0;
         	for(kkk=0;kkk<=no;kkk++){
 			if(kkk!=no){
 				if(kkk>=20){
-				//if(kkk>=1){
 					total += frag;
 					for(i=0; i<frag; i++){
                 				if(test->Test(data[kkk][i], test->DTree)==result[kkk][i])count++;
 					}
-					//printf("%f %ld %ld\n", (double)count/total, test->DTree->size, test->maxHeight);
-					//total = 0;
-					//count = 0;
 				}
-				//test->maxHeight = sqrt(sqrt(test->DTree->size+frag));
 				start = clock();
                 		test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
 				time += (double)(clock()-start)/CLOCKS_PER_SEC;

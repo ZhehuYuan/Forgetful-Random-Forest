@@ -118,7 +118,7 @@ def Cov():
     print(yy/(561012))
 
 def Synth():
-    f = open("../Synthetic/synthetic_100_gradual", "r")
+    f = open("../Synthetic/2synthetic_100_gradual", "r")
     X, y = [], []
     for i in range(100000):
         l = f.readline()[:-1]

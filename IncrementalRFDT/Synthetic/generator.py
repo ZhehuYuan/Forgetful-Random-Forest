@@ -3,7 +3,7 @@ import math
 import sys
 
 size = 100000
-feature = 20
+feature = 10
 considered = 10
 classes = 2
 concept = int(sys.argv[1])
@@ -70,7 +70,7 @@ for i in range(size):
     
     data.append(singleData)
 
-name = "synthetic_"+sys.argv[1]
+name = "2synthetic_"+sys.argv[1]
 with open(name+"_gradual","w") as f:
     for i in range(size):
         for j in range(feature):

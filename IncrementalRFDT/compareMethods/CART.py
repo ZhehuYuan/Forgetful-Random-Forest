@@ -22,7 +22,8 @@ def Phi():
         X.append(a[:-1])
         y.append(int(a[-1]))
     before = time.time()
-    dt = train(X[:251], y[:251])
+    size=599
+    dt = train(X[:size], y[:size])
     print(time.time()-before)
     
     TF = 0
@@ -58,7 +59,7 @@ def Elec():
         y.extend(result)
         
     before = time.time()
-    dt = train(X[:280], y[:280])
+    dt = train(X[:254], y[:254])
     print(str(time.time()-before))
 
     T = 0
@@ -103,18 +104,43 @@ def Cov():
     aaa = 581012
 
     t = time.time()
-    dt = train(X[:1715], y[:1715])
+    dt = train(X[:7510], y[:7510])
     print(time.time()-t)
 
     #dt = train(np.array(data), np.array(result))
    
-    xx = dt.predict(X[2000:])
-    y = y[2000:]
+    xx = dt.predict(X[8000:])
+    y = y[8000:]
     yy = 0
     for i in range(561011):
         if xx[i] == y[i]:
             yy+=1
     print(yy/(561012))
+
+def Synth():
+    f = open("../Synthetic/synthetic_100_gradual", "r")
+    X, y = [], []
+    for i in range(100000):
+        l = f.readline()[:-1]
+        a = l.split(" ")
+        a = [float(i) for i in a]
+        X.append(a[:-1])
+        y.append(int(a[-1]))
+    
+    data = []
+    result = []
+
+    t = time.time()
+    dt = train(X[:800], y[:800])
+    print(time.time()-t)
+
+    xx = dt.predict(X[2000:])
+    y = y[2000:]
+    yy = 0
+    for i in range(39000):
+        if xx[i] == y[i]:
+            yy+=1
+    print(yy/(39000))
 
 def Gradual():
     f = open("../mixed/mixed_0101_gradual.csv", "r")
@@ -130,7 +156,7 @@ def Gradual():
     result = []
 
     t = time.time()
-    dt = train(X[:762], y[:762])
+    dt = train(X[:1072], y[:1072])
     print(time.time()-t)
 
     #dt = train(np.array(data), np.array(result))
@@ -157,7 +183,7 @@ def Abrupto():
     result = []
 
     t = time.time()
-    dt = train(X[:267], y[:267])
+    dt = train(X[:1102], y[:1102])
     print(time.time()-t)
 
     #dt = train(np.array(data), np.array(result))
@@ -170,44 +196,22 @@ def Abrupto():
             yy+=1
     print(yy/(38000))
 
-x = [0, 1, 2, 3, 4]
+x = [0, 1, 2, 3, 4, 5]
 if 0 in x:
     print("covtype:")
-    Cov()
-    Cov()
-    Cov()
-    Cov()
-    Cov()
     Cov()
 if 1 in x:
     print("Elec:")
     Elec()
-    Elec()
-    Elec()
-    Elec()
-    Elec()
-    Elec()
 if 2 in x:
     print("phishing:")
-    Phi()
-    Phi()
-    Phi()
-    Phi()
-    Phi()
     Phi()
 if 3 in x:
     print("gradual:")
     Gradual()
-    Gradual()
-    Gradual()
-    Gradual()
-    Gradual()
-    Gradual()
 if 4 in x:
     print("abrupto:")
     Abrupto()
-    Abrupto()
-    Abrupto()
-    Abrupto()
-    Abrupto()
-    Abrupto()
+if 5 in x:
+    print("synthetic:")
+    Synth()

@@ -8,6 +8,7 @@
 #include <float.h>
 #include <ctime>
 #include <random>
+#include <boost/math/distributions/students_t.hpp>
 
 std::random_device rd;
 std::mt19937 g(rd());
@@ -511,13 +512,34 @@ void DecisionTree::fit(double** data, long* result, long size){
                         	localAll++;
                 	}
                 	if(lastAll!=0){
-				if((double)lastT/lastAll-1.0/classes==0.0){
-					isUp = 2147483647;
-				}else{
-                			isUp = ((double)localT/localAll-1.0/classes)/((double)lastT/lastAll-1.0/classes);
-                        		if(isUp<0)isUp=0;
+				if((double)localT/localAll <= 1.0/classes)isUp=0.0;
+				else if((double)lastT/lastAll <= 1.0/classes)isUp=10.0;
+				else if((double)lastT/lastAll == (double)localT/localAll)isUp = 1.0;	
+				else{
+					double lastSm = (double)lastT/lastAll;
+			       		double localSm = (double)localT/localAll;
+					double lastSd = sqrt(pow((1.0-lastSm),2)*lastT+pow(lastSm,2)*(lastAll-lastT)/(lastAll-1));
+					double localSd = sqrt(pow((1.0-localSm),2)*localT+pow(localSm,2)*(localAll-localT)/(localAll-1));
+					double v = lastAll+localAll-2;
+					double sp = sqrt(((lastAll-1) * lastSd * lastSd + (localAll-1) * localSd * localSd) / v);
+					double q;
+					double t=lastSm-localSm;
+					if(sp==0)q=1.0;
+					else{
+						double t = t/(sp*sqrt(1.0/lastAll+1.0/localAll));
+						boost::math::students_t dist(v);
+						double c = cdf(dist, t);
+						q = cdf(complement(dist, fabs(t)));
+					}
+					if(q<0.05){
+						isUp=0;
+					}else if(t<0){
+						isUp=-1.0;
+					}else{
+						isUp = ((double)localT/localAll-1.0/classes)/((double)lastT/lastAll-1.0/classes);
+						isUp = pow(isUp, 3);
+					}
 				}
-				if((double)localT/localAll<1.0/classes)localAll=localT*classes-1;
                 	}
                 	lastT = localT;
                		lastAll = localAll;
@@ -544,8 +566,11 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	long low = 0;
 	long forgetSize=0;
 	long* index;
+	bool forgetOld = false;
 	index = (long*)malloc(sizeof(long)*current->size);
-       	if(current->size+size>retain and current->height==0) forgetSize = std::min(current->size+size - retain, current->size);
+       	if(current->size+size>retain and current->height==0) {
+		forgetSize = std::min(current->size+size - retain, current->size);
+	}
 	if(forgetSize==current->size){
 		Update(data, result, size, current);
 		return;

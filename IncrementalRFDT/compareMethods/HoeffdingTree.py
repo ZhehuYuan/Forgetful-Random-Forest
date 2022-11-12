@@ -31,7 +31,7 @@ def Synth(modelID, dataId):
     elif dataId==1:
         f = open("../mixed/mixed_0101_abrupto.csv", "r")
     elif dataId==2:
-        f = open("../Synthetic/synthetic_100_gradual", "r")
+        f = open("../Synthetic/2synthetic_100_gradual", "r")
 
 
     data = []
@@ -207,66 +207,6 @@ def Elec(modelID):
     print(t)
     print(str(T/TF))
 
-def M5(modelID):
-    if modelID==1:
-        ht = HoeffdingTreeClassifier()
-    elif modelID==2:
-        ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
-    elif modelID==3:
-        ht = iSOUPTreeRegressor(tie_threshold=0.5)
-    elif modelID==4:
-        ht = AdaptiveRandomForestClassifier(20, 6)
-    else:
-        print("wrong model ID\n")
-        exit(0)
-    
-    t = 0
-    alldata = []
-    allresult = []
-    sizeTrain = 0
-    T = 0
-    TF = 0
-    for j in range(133):
-        f = open("../M5/day_"+str(j), "r")
-        data = []
-        result = []
-        for line in f:
-            if line=="\n":
-                continue
-            data.append([])
-            line = line.replace("\n", "")
-            #line = line[:-1]
-            line = line.split(" ")
-            for i in range(len(line)-1):
-                data[-1].append(float(line[i]))
-            if modelID==3:
-                result.append([0.0 if int(int(line[-1])==0)==i else 1.0 for i in range(2)])
-            else:
-                result.append(int(int(line[-1])>0))
-        f.close()
-        if modelID==3:
-            data = np.array(data)
-            result = np.array(result)
-        if j>=20:
-            x = ht.predict(data)
-            for j in range(len(x)):
-                if modelID == 3:
-                    if x[j][0]>x[j][1]:
-                        aaa = 0
-                    else:
-                        aaa = 1
-                    if aaa==int(result[j][1]>=result[j][0]):
-                        T+=1
-                else:
-                    if x[j]==result[j]:
-                        T+=1
-                TF+=1
-        if i!=132:
-            t1 = time.time()
-            ht.partial_fit(data, result)
-            t += time.time()-t1
-    print(t)
-    print(str(T/TF))
 
 def Phishing(modelID):
     f = open("../phishing/phishing", "r")

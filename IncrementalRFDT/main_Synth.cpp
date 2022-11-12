@@ -42,12 +42,12 @@ int main(int argc, char* argv[]){
         long frag = 100;
         long size = 100000;
         long noClasses = 2;
-        long feature = 20;
+        long feature = 10;
         double*** data;
         long** result;
         char buf[1024] = { 0 };
-	int isSparse[20];
-	for(i=0; i<20; i++){
+	int isSparse[feature];
+	for(i=0; i<feature; i++){
 		isSparse[i] = 0;
 	}
         long no = size/frag;
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]){
 	//std::string fname = name[atoi(argv[2])];
 	//std::string dname = "Synthetic/";
 	//infile.open(dname+fname, std::ios::in);
-	infile.open("Synthetic/synthetic_100_gradual", std::ios::in);
+	infile.open("Synthetic/2synthetic_100_gradual", std::ios::in);
         for(i=0;i<no;i++){
                 data[i] = (double**)malloc(frag*sizeof(double*));
                 result[i] = (long*)malloc(frag*sizeof(long));
@@ -125,6 +125,6 @@ int main(int argc, char* argv[]){
 			}
 		}
 	}
-	printf("%f, %f, %ld\n", t, (double)T/TF, maxSize);
+	printf("%f\n%f\n%ld\n", t, (double)T/TF, maxSize);
 }
 

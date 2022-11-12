@@ -1,6 +1,32 @@
 runCART:
 	python3 CART.py
 
+runSynth:
+	#python3 HoeffdingTree.py Synth 1 2
+	#python3 HoeffdingTree.py Synth 1 2
+	#python3 HoeffdingTree.py Synth 1 2
+	#python3 HoeffdingTree.py Synth 1 2
+	#python3 HoeffdingTree.py Synth 1 2
+	#python3 HoeffdingTree.py Synth 1 2
+	#python3 HoeffdingTree.py Synth 2 2
+	#python3 HoeffdingTree.py Synth 2 2
+	#python3 HoeffdingTree.py Synth 2 2
+	#python3 HoeffdingTree.py Synth 2 2
+	#python3 HoeffdingTree.py Synth 2 2
+	#python3 HoeffdingTree.py Synth 2 2
+	#python3 HoeffdingTree.py Synth 3 2
+	#python3 HoeffdingTree.py Synth 3 2
+	#python3 HoeffdingTree.py Synth 3 2
+	#python3 HoeffdingTree.py Synth 3 2
+	#python3 HoeffdingTree.py Synth 3 2
+	#python3 HoeffdingTree.py Synth 3 2
+	python3 HoeffdingTree.py Synth 4 2
+	python3 HoeffdingTree.py Synth 4 2
+	python3 HoeffdingTree.py Synth 4 2
+	python3 HoeffdingTree.py Synth 4 2
+	python3 HoeffdingTree.py Synth 4 2
+	python3 HoeffdingTree.py Synth 4 2
+
 runCov:
 	python3 HoeffdingTree.py covtype 1
 	python3 HoeffdingTree.py covtype 1

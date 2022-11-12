@@ -28,7 +28,8 @@ int* sparse;
 double forget;
 long noClasses;
 Evaluation e;
-double lastAcc;
+long lastT;
+long lastAll;
 int minF;
 
 RandomForest(long maxTree, int height, long f, int* sparse, double forget, long noClasses=2, Evaluation e=Evaluation::gini, long rb=2147483647);

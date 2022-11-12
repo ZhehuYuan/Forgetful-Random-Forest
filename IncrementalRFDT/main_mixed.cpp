@@ -9,6 +9,7 @@ struct DT{
         long* featureId;
         DT* left = nullptr;
         DT* right = nullptr;
+        bool created;
 
         // split info
         bool terminate;
@@ -77,7 +78,7 @@ int main(int argc, char* argv[]){
         clock_t start,end;
         if(argv[1][0]=='0'){
 		RandomForest* test;
-        	test = new RandomForest(10, 10, feature, isSparse, -10.0, noClasses, Evaluation::gini);
+        	test = new RandomForest(10, 9, feature, isSparse, -10.0, noClasses, Evaluation::gini);
         	for(kkk=0;kkk<no;kkk++){
 			if(kkk!=no-1){
 				if(kkk>=20){
@@ -99,7 +100,7 @@ int main(int argc, char* argv[]){
 		printf("%f\n%f\n", time, (double)count/total);
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
-		test= new DecisionTree(10, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, 2147483647);
+		test= new DecisionTree(9, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, 2147483647);
         	long maxSize=0;
 		for(kkk=0;kkk<no;kkk++){
 			if(kkk!=no-1){

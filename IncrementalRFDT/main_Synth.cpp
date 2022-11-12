@@ -10,6 +10,7 @@ struct DT{
         long* featureId;
         DT* left = nullptr;
         DT* right = nullptr;
+        bool created;
 
         // split info
         bool terminate;
@@ -79,7 +80,7 @@ int main(int argc, char* argv[]){
 	long maxSize = 0;
         if(argv[1][0]=='0'){
 		RandomForest* test;
-        	test = new RandomForest(10, 10, feature, isSparse, -10.0, noClasses, Evaluation::gini);
+        	test = new RandomForest(10, 8, feature, isSparse, -10.0, noClasses, Evaluation::gini);
         	for(kkk=0;kkk<no;kkk++){
                 	if(kkk>=20){
 				if(kkk == no-1){
@@ -102,7 +103,7 @@ int main(int argc, char* argv[]){
 		}
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
-		test= new DecisionTree(10, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, rb);
+		test= new DecisionTree(8, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, rb);
         	for(kkk=0;kkk<no;kkk++){
 			if(kkk>=20){
 				if(kkk==no-1){

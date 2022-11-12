@@ -29,6 +29,7 @@ struct DT{
 	long* featureId;
 	DT* left = nullptr;
 	DT* right = nullptr;
+	bool created;
 
 	// split info
 	bool terminate;
@@ -49,9 +50,9 @@ struct DT{
 	double** dataRecord = nullptr;// Record the data
 	long* resultRecord = nullptr;// Record the result
 	long size = 0;// Size of the dataset
+	
 };
-//long seed = (long)clock();
-long seed = 0;
+long seed = (long)clock();
 long* Rands(long feature, long maxFeature){
 	srand(seed);
 	long i;
@@ -72,9 +73,8 @@ double getRand(){
 	return (double) rand() / RAND_MAX;
 }
 
-
-void createTree(DT* t, long currentHeight, long height, long f, long maxF, long classes){
-	srand(seed);
+void createNode(DT* t, long currentHeight, long f, long classes){
+	t->created = true;
 	long i;
 	t->count = (long***)malloc(f*sizeof(long**));
 	for(i=0; i<f; i++)t->count[i]=nullptr;
@@ -91,20 +91,18 @@ void createTree(DT* t, long currentHeight, long height, long f, long maxF, long 
 	t->height = currentHeight;
 	t->feature = -1;
 	t->size = 0;
-	if(currentHeight>height){
-		t->right = nullptr;
-		t->left = nullptr;
-		return;
-	}
 
 	t->left = (DT*)malloc(sizeof(DT));
 	t->right = (DT*)malloc(sizeof(DT));
-	createTree(t->left, currentHeight+1, height, f, maxF, classes);
-	createTree(t->right, currentHeight+1, height, f, maxF, classes);
+	t->left->created = false;
+	t->right->created = false;
+	t->left->height = currentHeight+1;
+	t->right->height = currentHeight+1;
 }
 
 void stableTree(DT* t, long f){
 	long i, j;
+	if(not t->created)return;
 	for(i=0; i<f; i++){
 		if(t->count[i]==nullptr)continue;
 		for(j=0; j<t->max[i]; j++){
@@ -136,8 +134,10 @@ void stableTree(DT* t, long f){
 }
 
 void freeTree(DT* t){
-	if(t->left != nullptr)freeTree(t->left);
-	if(t->right != nullptr)freeTree(t->right);
+	if(t->created){
+		freeTree(t->left);
+		freeTree(t->right);
+	}
 	free(t);
 }
 
@@ -169,7 +169,7 @@ DecisionTree::DecisionTree(int height, long f, int* sparse, double forget=0.1, l
 	forgetRate = std::min(1.0, forget);
 	retain = 0;
 	DTree->featureId = Rands(f, maxF);
-	createTree(DTree, 0, maxHeight, f, maxFeature, noClasses);
+	createNode(DTree, 0, f, noClasses);
 	// Number of classes of this dataset
 	Rebuild = rb;
 	roundNo = 0;
@@ -843,6 +843,7 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	current->resultRecord = resultNew;
 }
 void DecisionTree::Update(double** data, long* result, long size, DT* current){
+	if(not current->created)createNode(current, current->height, feature, classes);
 	long low = 0;
 	long i, j;
 	// end condition

@@ -16,7 +16,9 @@ struct DT{
         int height;
         long* featureId;
         DT* left = nullptr;
-        DT* right = nullptr;
+        DT* right = nullptr;	
+        bool created;
+
 
         // split info
         bool terminate;
@@ -73,7 +75,7 @@ int main(int argc, char* argv[]){
 		RandomForest* test;
 		long maxF = 3;
 	       	if(atoi(argv[2])==0){
-			test = new RandomForest(10, 10, feature, (int*)isSparse, -10.0, classes, Evaluation::gini);
+			test = new RandomForest(10, 7, feature, (int*)isSparse, -10.0, classes, Evaluation::gini);
 		}
 		for(i = 1; i<944; i++){
 			data = (double**)malloc(no*sizeof(double*));
@@ -117,9 +119,9 @@ int main(int argc, char* argv[]){
 	else if(argv[1][0]=='1'){
 		DecisionTree* test;
 	       	if(atoi(argv[2])==0){
-			test = new DecisionTree(10, feature, isSparse, -10.0, feature, classes, Evaluation::gini, 2147483647);
+			test = new DecisionTree(7, feature, isSparse, -10.0, feature, classes, Evaluation::gini, 2147483647);
 		}else{
-			test = new DecisionTree(10, feature, isSparse, 0, feature, classes, Evaluation::gini, 2147483647);
+			test = new DecisionTree(7, feature, isSparse, 0, feature, classes, Evaluation::gini, 2147483647);
 		}
 		long maxSize = 0;
 		long lastT=0;

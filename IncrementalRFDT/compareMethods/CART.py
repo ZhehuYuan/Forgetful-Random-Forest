@@ -23,7 +23,7 @@ def Phi():
         y.append(int(a[-1]))
     before = time.time()
     size=599
-    dt = train(X[:size], y[:size])
+    dt = train(X[:size], y[:size], 8)
     print(time.time()-before)
     
     TF = 0
@@ -59,7 +59,7 @@ def Elec():
         y.extend(result)
         
     before = time.time()
-    dt = train(X[:254], y[:254])
+    dt = train(X[:254], y[:254], 6)
     print(str(time.time()-before))
 
     T = 0
@@ -104,7 +104,7 @@ def Cov():
     aaa = 581012
 
     t = time.time()
-    dt = train(X[:7510], y[:7510])
+    dt = train(X[:7510], y[:7510], 11)
     print(time.time()-t)
 
     #dt = train(np.array(data), np.array(result))
@@ -131,7 +131,7 @@ def Synth():
     result = []
 
     t = time.time()
-    dt = train(X[:800], y[:800])
+    dt = train(X[:800], y[:800], 8)
     print(time.time()-t)
 
     xx = dt.predict(X[2000:])
@@ -156,7 +156,7 @@ def Gradual():
     result = []
 
     t = time.time()
-    dt = train(X[:1072], y[:1072])
+    dt = train(X[:1072], y[:1072], 9)
     print(time.time()-t)
 
     #dt = train(np.array(data), np.array(result))
@@ -183,7 +183,7 @@ def Abrupto():
     result = []
 
     t = time.time()
-    dt = train(X[:1102], y[:1102])
+    dt = train(X[:1102], y[:1102], 9)
     print(time.time()-t)
 
     #dt = train(np.array(data), np.array(result))

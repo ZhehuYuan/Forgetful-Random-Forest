@@ -34,8 +34,8 @@ struct DT{
 
 
 int main(int argc, char* argv[]){
-	if(argc!=3){
-		printf("Please input parameters: [0 for random forest or 1 for decision tree] [0 for gradual 1 for abrupto]\n");
+	if(argc!=4 and argc!=5){
+		printf("Please input parameters: [0 for random forest or 1 for decision tree] [0 for gradual 1 for abrupto] [initial iRate] [bagging or not]\n");
 		return -1;
 	}
         long i,j,k, kkk=0;
@@ -47,6 +47,7 @@ int main(int argc, char* argv[]){
         long** result;
         int isSparse[4]={0, 0, 1, 1};
         char buf[1024] = { 0 };
+	double ir = 0.01;
         std::ifstream infile;
 	if(atoi(argv[2])==0){
         	infile.open("mixed/mixed_0101_gradual.csv", std::ios::in);
@@ -73,57 +74,101 @@ int main(int argc, char* argv[]){
                 result[i/frag][i%frag] = atoi(buf);
         }
 
-        long count=0, total=0;
+        long count=0, total=0, TPos=0, TNeg=0, FPos=0;
 	double time=0.0;
         clock_t start,end;
         if(argv[1][0]=='0'){
 		RandomForest* test;
-        	test = new RandomForest(10, 9, feature, isSparse, -10.0, noClasses, Evaluation::gini);
+		if(atof(argv[3])==0){
+        		test = new RandomForest(20, 9, feature, isSparse, ir, noClasses, Evaluation::gini, atoi(argv[4])!=0);
+		}else{
+        		test = new RandomForest(20, 9, feature, isSparse, atof(argv[3]), noClasses, Evaluation::gini, atoi(argv[4])!=0);
+		}
         	for(kkk=0;kkk<no;kkk++){
+			long localT=0;
 			if(kkk!=no-1){
-				if(kkk>=20){
-					total += frag;
+					if(kkk>=20)total += frag;
 					for(i=0; i<frag; i++){
-                				if(test->Test(data[kkk][i])==result[kkk][i])count++;
+                				if(test->Test(data[kkk][i])==result[kkk][i]){
+							if(kkk>=20){
+								count++;
+								if(result[kkk][i]==1)TPos++;
+								else TNeg++;
+							}
+							localT++;
+						}else if(kkk>=20 and result[kkk][i]==0){
+							FPos++;
+						}
 					}
-				}
+					//printf("%f\n", (double)localT/frag);
 				start = clock();
                 		test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
 				time += (double)(clock()-start)/CLOCKS_PER_SEC;
 			}else{
 				total += size-frag*no;
 				for(i=0; i<size-frag*no; i++){
-                			if(test->Test(data[kkk][i])==result[kkk][i])count++;
+                			if(test->Test(data[kkk][i])==result[kkk][i]){
+						count++;
+						localT++;
+						if(result[kkk][i]==1)TPos++;
+						else TNeg++;
+					}else if(result[kkk][i]==0){
+						FPos++;
+					}
 				}
+				//printf("%f\n", (double)localT/(size-frag*no+frag));
 			}
 		}
 		printf("%f\n%f\n", time, (double)count/total);
+		printf("%f\n", (2.0*TPos)/(2.0*TPos+FPos+TNeg));
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
-		test= new DecisionTree(9, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, 2147483647);
+		if(atof(argv[3])==0){
+			test= new DecisionTree(9, feature, isSparse, ir, feature, noClasses, Evaluation::gini, 2147483647);
+		}else{
+			test= new DecisionTree(9, feature, isSparse, atof(argv[3]), feature, noClasses, Evaluation::gini, 2147483647);
+		}
         	long maxSize=0;
 		for(kkk=0;kkk<no;kkk++){
+			long localT=0;
 			if(kkk!=no-1){
-				if(kkk>=20){
-					total += frag;
+					if(kkk>=20)total += frag;
 					for(i=0; i<frag; i++){
-                				if(test->Test(data[kkk][i], test->DTree)==result[kkk][i])count++;
+                				if(test->Test(data[kkk][i], test->DTree)==result[kkk][i]){
+							if(kkk>=20){
+								count++;
+								if(result[kkk][i]==1)TPos++;
+								else TNeg++;
+							}
+							localT++;
+						}else if(result[kkk][i]==0){
+							FPos++;
+						}
 					}
-				}
+					//printf("%f\n", (double)localT/frag);
 				start = clock();
                 		test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
 				time += (double)(clock()-start)/CLOCKS_PER_SEC;
 				if(test->DTree->size>maxSize)maxSize=test->DTree->size;
 			}else{
-				total += size-frag*no;
+				total += size-frag*no+frag;
 				for(i=0; i<size-frag*no; i++){
-                			if(test->Test(data[kkk][i], test->DTree)==result[kkk][i])count++;
+                			if(test->Test(data[kkk][i], test->DTree)==result[kkk][i]){
+						count++;
+						localT++;
+						if(result[kkk][i]==1)TPos++;
+						else TNeg++;
+					}else if(result[kkk][i]==0){
+						FPos++;
+					}
 				}
+				//printf("%f\n", (double)localT/(size-frag*no+frag));
 				if(test->DTree->size>maxSize)maxSize=test->DTree->size;
                         }
                 }
                 printf("%ld\n", maxSize);
 		printf("%f\n%f\n", time, (double)count/total);
+		printf("%f\n", (2.0*TPos)/(2.0*TPos+FPos+TNeg));
 	}
 }
 

@@ -13,14 +13,17 @@ class DecisionTree{
 public:
 
 DT* DTree = nullptr;
+double minIG;
 long maxHeight;
 long maxHeightUpper;
 long feature;
 long maxFeature;
-long seed;
+bool isRF;
 long classes;
 int* Sparse;
 double forgetRate;
+double increaseRate;
+double initialIR;
 Evaluation evalue;
 long Rebuild;
 long roundNo;

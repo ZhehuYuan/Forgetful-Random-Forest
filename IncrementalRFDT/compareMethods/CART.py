@@ -196,7 +196,8 @@ def Abrupto():
             yy+=1
     print(yy/(38000))
 
-x = [0, 1, 2, 3, 4, 5]
+
+#x = [0, 1, 2, 3, 4, 5]
 if 0 in x:
     print("covtype:")
     Cov()

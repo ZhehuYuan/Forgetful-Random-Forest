@@ -31,7 +31,17 @@ def Synth(modelID, dataId):
     elif dataId==1:
         f = open("../mixed/mixed_0101_abrupto.csv", "r")
     elif dataId==2:
-        f = open("../Synthetic/2synthetic_100_gradual", "r")
+        f = open("../Synthetic/synthetic_50_gradual", "r")
+    elif dataId==3:
+        f = open("../Synthetic/synthetic_25_gradual", "r")
+    elif dataId==4:
+        f = open("../Synthetic/synthetic_10_gradual", "r")
+    elif dataId==5:
+        f = open("../Synthetic/synthetic_50_abrupt", "r")
+    elif dataId==6:
+        f = open("../Synthetic/synthetic_25_abrupt", "r")
+    elif dataId==7:
+        f = open("../Synthetic/synthetic_10_abrupt", "r")
 
 
     data = []
@@ -49,6 +59,17 @@ def Synth(modelID, dataId):
         else:
             result.append(int(float(line[-1])))
     f.close()
+    
+    if dataId==0:
+        f = open("gradual"+str(modelID), "w")
+    elif dataId==1:
+        f = open("abrupto"+str(modelID), "w")
+    elif dataId==2:
+        f = open("50_gradual"+str(modelID), "w")
+    elif dataId==3:
+        f = open("25_gradual"+str(modelID), "w")
+    elif dataId==4:
+        f = open("10_gradual"+str(modelID), "w")
 
     t = 0.0
     length = len(data)
@@ -56,22 +77,47 @@ def Synth(modelID, dataId):
     TF = 0
     start = 0
     gap = 100
+    TPos = 0
+    FPos = 0
+    TNeg = 0
     while start<length:
         end = min(start+gap, length)
         X = data[start:end]
         y = result[start:end]
-        if start >= 20*gap:
+        if start!=0:
+            localT = 0
+            localTF = 0
             for i in range(start, end):
-                TF+=1
+                if start >= 20*gap:
+                    TF+=1
+                localTF+=1
                 x = ht.predict(np.array([data[i]]))[0]
                 if modelID == 3:
                     x = x.tolist()
                     x=x.index(max(x))
                     if x == result[i].index(max(result[i])):
-                        T+=1
+                        if start >= 20*gap:
+                            T+=1
+                            if x==1:
+                                TPos += 1
+                            else:
+                                TNeg += 1
+                        localT+=1
+                    elif start>=20*gap and x==1:
+                        FPos+=1
                 else:
                     if x == result[i]:
-                        T+=1
+                        if start >= 20*gap:
+                            T+=1
+                            if x==1:
+                                TPos += 1
+                            else:
+                                TNeg += 1
+                        localT+=1
+                    elif start>=20*gap and x==1:
+                        FPos+=1
+            #f.write(str(localT/localTF))
+            #f.write("\n")
         if(end!=length):
             t1 = time.time()
             if modelID==3:
@@ -82,6 +128,10 @@ def Synth(modelID, dataId):
         start = end
     print(t)
     print(T/TF)
+    print(TPos)
+    print(TNeg)
+    print(FPos)
+    print((2*TPos)/(2*TPos+TNeg+FPos))
 
 def CovType(modelID):
     if modelID==1:
@@ -112,6 +162,8 @@ def CovType(modelID):
         else:
             result.append(int(float(line[-1])))
     f.close()
+    
+    f = open("covtype"+str(modelID), "w")
 
     t = 0.0
     length = 581012
@@ -123,18 +175,28 @@ def CovType(modelID):
         end = min(start+gap, length)
         X = data[start:end]
         y = result[start:end]
-        if start >= 20*gap:
+        if start!=0:
+            localT = 0
+            localTF = 0
             for i in range(start, end):
-                TF+=1
+                if start >= 20*gap:
+                    TF+=1
+                localTF+=1
                 x = ht.predict(np.array([data[i]]))[0]
                 if modelID == 3:
                     x = x.tolist()
                     x=x.index(max(x))
                     if x == result[i].index(max(result[i])):
-                        T+=1
+                        if start >= 20*gap:
+                            T+=1
+                        localT+=1
                 else:
                     if x == result[i]:
-                        T+=1
+                        if start >= 20*gap:
+                            T+=1
+                        localT+=1
+            #f.write(str(localT/localTF))
+            #f.write("\n")
         if(end!=length):
             t1 = time.time()
             if modelID==3:
@@ -165,8 +227,12 @@ def Elec(modelID):
     sizeTrain = 0
     T = 0
     TF = 0
-    for j in range(1, 944):
-        f = open("../electricity/electricity"+str(j)+".txt", "r")
+    TPos = 0
+    TNeg = 0
+    FPos = 0
+    ff = open("elec"+str(modelID), "w")
+    for ii in range(1, 944):
+        f = open("../electricity/electricity"+str(ii)+".txt", "r")
         data = []
         result = []
         for line in f:
@@ -186,27 +252,52 @@ def Elec(modelID):
         if modelID==3:
             data = np.array(data)
             result = np.array(result)
-        if j>20:
+        if ii!=1:
             x = ht.predict(data)
+            localT = 0
+            localTF = 0
             for j in range(len(x)):
+                localTF+=1
                 if modelID == 3:
                     if x[j][0]>x[j][1]:
-                        aaa = 0
+                            aaa = 0
                     else:
-                        aaa = 1
+                            aaa = 1
                     if aaa == int(result[j][1]>=result[j][0]):
-                        T+=1
+                        if ii>20:
+                            T+=1
+                            if aaa==1:
+                                TPos += 1
+                            else:
+                                TNeg += 1
+                        localT+=1
+                    elif ii>20 and aaa==1:
+                        FPos+=1
                 else:
                     if x[j]==result[j]:
-                        T+=1
-                TF+=1
-        if i!=943:
+                        if ii>20:
+                            T+=1
+                            if x[j]==1:
+                                TPos += 1
+                            else:
+                                TNeg += 1
+                        localT+=1
+                    elif ii>20 and x[j]==1:
+                        FPos+=1
+                if ii>20:
+                    TF+=1
+            #ff.wirte(str(localT/localTF))
+            #ff.write("\n")
+        if ii!=943:
             t1 = time.time()
             ht.partial_fit(data, result)
             t += time.time()-t1
     print(t)
     print(str(T/TF))
-
+    print(TPos)
+    print(TNeg)
+    print(FPos)
+    print((2*TPos)/(2*TPos+TNeg+FPos))
 
 def Phishing(modelID):
     f = open("../phishing/phishing", "r")
@@ -242,19 +333,28 @@ def Phishing(modelID):
         print("wrong model ID\n")
         exit(0)
 
+    f = open("phi"+str(modelID), "w")
+
     t = 0.0
     length = 11055
     T = 0
     TF = 0
     start = 0
     gap = 100
+    TPos = 0
+    TNeg = 0
+    FPos = 0
     while start<length:
         end = min(start+gap, length)
         X = data[start:end]
         y = result[start:end]
-        if start >= 2000:
+        if start!=0:
+            localT=0
+            localTF=0
             for i in range(start, end):
-                TF+=1
+                if start >= 2000:
+                    TF+=1
+                localTF+=1
                 x = ht.predict([data[i]])[0]
                 if modelID == 3:
                     if x[0]>x[1]:
@@ -262,10 +362,28 @@ def Phishing(modelID):
                     else:
                         x = 1
                     if result[i][x] > result[i][abs(1-x)]:
-                        T+=1
+                        if start >= 2000:
+                            T+=1
+                            if x==1:
+                                TPos += 1
+                            else:
+                                TNeg += 1
+                        localT+=1
+                    elif start>=2000 and x==1:
+                        FPos+=1
                 else:
                     if x == result[i]:
-                        T+=1
+                        if start >= 2000:
+                            T+=1
+                            if x==1:
+                                TPos += 1
+                            else:
+                                TNeg += 1
+                        localT+=1
+                    elif start>=2000 and x==1:
+                        FPos+=1
+            #f.write(str(localT/localTF))
+            #f.write("\n")
         if(end!=length):
             t1 = time.time()
             ht.partial_fit(X, y)
@@ -273,6 +391,11 @@ def Phishing(modelID):
         start = end
     print(t)
     print(T/TF)
+    print(TPos)
+    print(TNeg)
+    print(FPos)
+    print(T)
+    print((2*TPos)/(2*TPos+TNeg+FPos))
 
 if __name__=="__main__":
     dataset = sys.argv[1]

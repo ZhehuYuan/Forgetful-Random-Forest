@@ -21,84 +21,84 @@ testElec:
 	g++ -g -fno-stack-protector main_elec.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o elec.out
 
 run:
-	echo Synthetic
-	./synthetic.out 0
-	./synthetic.out 0
-	./synthetic.out 0
-	./synthetic.out 0
-	./synthetic.out 0
-	./synthetic.out 0
-	./synthetic.out 1
-	./synthetic.out 1
-	./synthetic.out 1
-	./synthetic.out 1
-	./synthetic.out 1
-	./synthetic.out 1
-	echo elec
-	./elec.out 0 0
-	./elec.out 0 0
-	./elec.out 0 0
-	./elec.out 0 0
-	./elec.out 0 0
-	./elec.out 0 0
-	./elec.out 1 0
-	./elec.out 1 0
-	./elec.out 1 0
-	./elec.out 1 0
-	./elec.out 1 0
-	./elec.out 1 0
-	echo gradual
-	./mix.out 0 0
-	./mix.out 0 0
-	./mix.out 0 0
-	./mix.out 0 0
-	./mix.out 0 0
-	./mix.out 0 0
-	./mix.out 1 0
-	./mix.out 1 0
-	./mix.out 1 0
-	./mix.out 1 0
-	./mix.out 1 0
-	./mix.out 1 0
-	echo abrupt
-	./mix.out 0 1
-	./mix.out 0 1
-	./mix.out 0 1
-	./mix.out 0 1
-	./mix.out 0 1
-	./mix.out 0 1
-	./mix.out 1 1
-	./mix.out 1 1
-	./mix.out 1 1
-	./mix.out 1 1
-	./mix.out 1 1
-	./mix.out 1 1
-	echo cov
-	./cov.out 0 0
-	./cov.out 0 0
-	./cov.out 0 0
-	./cov.out 0 0
-	./cov.out 0 0
-	./cov.out 0 0
-	./cov.out 1 0
-	./cov.out 1 0
-	./cov.out 1 0
-	./cov.out 1 0
-	./cov.out 1 0
-	./cov.out 1 0
+	#echo Synthetic
+	#./synthetic.out 0
+	#./synthetic.out 0
+	#./synthetic.out 0
+	#./synthetic.out 0
+	#./synthetic.out 0
+	#./synthetic.out 0
+	#./synthetic.out 1
+	#./synthetic.out 1
+	#./synthetic.out 1
+	#./synthetic.out 1
+	#./synthetic.out 1
+	#./synthetic.out 1
 	echo phi
-	./phi.out 0 0
-	./phi.out 0 0
-	./phi.out 0 0
-	./phi.out 0 0
-	./phi.out 0 0
-	./phi.out 0 0
-	./phi.out 1 0
-	./phi.out 1 0
-	./phi.out 1 0
-	./phi.out 1 0
-	./phi.out 1 0
-	./phi.out 1 0
+	./phi.out 0 $(rf)
+	./phi.out 0 $(rf)
+	./phi.out 0 $(rf)
+	./phi.out 0 $(rf)
+	./phi.out 0 $(rf)
+	./phi.out 0 $(rf)
+	./phi.out 1 $(rf)
+	./phi.out 1 $(rf)
+	./phi.out 1 $(rf)
+	./phi.out 1 $(rf)
+	./phi.out 1 $(rf)
+	./phi.out 1 $(rf)
+	echo elec
+	./elec.out 0 $(rf)
+	./elec.out 0 $(rf)
+	./elec.out 0 $(rf)
+	./elec.out 0 $(rf)
+	./elec.out 0 $(rf)
+	./elec.out 0 $(rf)
+	./elec.out 1 $(rf)
+	./elec.out 1 $(rf)
+	./elec.out 1 $(rf)
+	./elec.out 1 $(rf)
+	./elec.out 1 $(rf)
+	./elec.out 1 $(rf)
+	echo gradual
+	./mix.out 0 0 $(rf)
+	./mix.out 0 0 $(rf)
+	./mix.out 0 0 $(rf)
+	./mix.out 0 0 $(rf)
+	./mix.out 0 0 $(rf)
+	./mix.out 0 0 $(rf)
+	./mix.out 1 0 $(rf)
+	./mix.out 1 0 $(rf)
+	./mix.out 1 0 $(rf)
+	./mix.out 1 0 $(rf)
+	./mix.out 1 0 $(rf)
+	./mix.out 1 0 $(rf)
+	echo abrupt
+	./mix.out 0 1 $(rf) 
+	./mix.out 0 1 $(rf)
+	./mix.out 0 1 $(rf)
+	./mix.out 0 1 $(rf)
+	./mix.out 0 1 $(rf)
+	./mix.out 0 1 $(rf)
+	./mix.out 1 1 $(rf)
+	./mix.out 1 1 $(rf)
+	./mix.out 1 1 $(rf)
+	./mix.out 1 1 $(rf)
+	./mix.out 1 1 $(rf)
+	./mix.out 1 1 $(rf)
+	echo cov
+	./cov.out 0 $(rf)
+	./cov.out 0 $(rf)
+	./cov.out 0 $(rf)
+	./cov.out 0 $(rf)
+	./cov.out 0 $(rf)
+	./cov.out 0 $(rf)
+	./cov.out 1 $(rf)
+	./cov.out 1 $(rf)
+	./cov.out 1 $(rf)
+	./cov.out 1 $(rf)
+	./cov.out 1 $(rf)
+	./cov.out 1 $(rf)
 
 clear:
 	rm ./*.out

@@ -141,13 +141,16 @@ void freeTree(DT* t){
 	free(t);
 }
 
-DecisionTree::DecisionTree(int height, long f, int* sparse, double forget=0.1, long maxF=0, long noClasses=2, Evaluation e=Evaluation::gini, long rb=1){
+DecisionTree::DecisionTree(int height, long f, int* sparse, double rate, long maxF, long noClasses, Evaluation e, long rb){
 	evalue = e;
-	called = 0;	
 	long i;
+	minIG = 0.005;
 	// Max tree height
 	maxHeight = height;
 	maxHeightUpper = height;
+	initialIR = rate;
+	increaseRate = rate;
+	isRF = false;
 	// Number of features
 	feature = f;
 	// If each feature is sparse or dense, 0 for dense, 1 for sparse, >2 for number of category
@@ -160,15 +163,17 @@ DecisionTree::DecisionTree(int height, long f, int* sparse, double forget=0.1, l
         DTree->feature = -1;
 	// The number of feature that is considered in each node 
 	if(maxF>=f){
-		maxFeature = f;
+		maxF = f;
 	}else if(maxF<=0){
-		maxFeature = (long)round(sqrt(f)); 
-	}else{
-		maxFeature = maxF;
+		maxF = (long)round(sqrt(f)); 
 	}
-	forgetRate = std::min(1.0, forget);
+	maxFeature = maxF;
+	forgetRate = -10.0;
 	retain = 0;
 	DTree->featureId = Rands(f, maxF);
+	DTree->terminate = true;
+	DTree->result = 0;
+	DTree->size = 0;
 	createNode(DTree, 0, f, noClasses);
 	// Number of classes of this dataset
 	Rebuild = rb;
@@ -418,7 +423,6 @@ minEval DecisionTree::findMinGiniSparse(double** data, long* result, long* total
 	long* d = (long*)malloc(size*sizeof(long));
 	for(i=0; i<size; i++)d[i]=i;
 	std::sort(d, d+size, [&data, col](long l, long r){return data[l][col]<data[r][col];});
-
 	minEval ret;
 	if(evalue == Evaluation::gini){
 		ret = giniSparse(data, result, d, size, col, classes, totalT);
@@ -506,47 +510,82 @@ void DecisionTree::fit(double** data, long* result, long size){
 	if(DTree->size==0){
 		Update(data, result, size, DTree);
 	}else{
-		if(forgetRate==-10.0){
+		if(forgetRate<=0){
                 	for(long j=0; j<size; j++){
                 		if(Test(data[j], DTree)==result[j])localT++;
                         	localAll++;
                 	}
-                	if(lastAll!=0){
-				if((double)localT/localAll <= 1.0/classes)isUp=0.0;
-				else if((double)lastT/lastAll <= 1.0/classes)isUp=10.0;
-				else if((double)lastT/lastAll == (double)localT/localAll)isUp = 1.0;	
+                	if(forgetRate==0.0){
+				double lastSm = (double)lastT/lastAll;
+			       	double localSm = (double)localT/localAll;
+				if(localSm <= 1.0/classes){
+                			lastT = localT;
+               				lastAll = localAll;
+					retain = size;
+					//increaseRate = 1.0-localSm;
+				}
+				else if(lastSm <= 1.0/classes){
+                			lastT = localT;
+               				lastAll = localAll;
+					retain += size;
+					//increaseRate -= localSm;
+					//increaseRate = initialIR;
+					//increaseRate -= localSm;
+					//increaseRate /= (double)localSm-1.0/classes;
+				}
+				else if(lastSm == localSm){
+                			lastT += localT;
+               				lastAll += localAll;
+					retain+=(long)round(increaseRate*size);
+					//increaseRate*=increaseRate;
+                			//retain = (long)((double)retain*isUp+0.25*size);
+				}
 				else{
-					double lastSm = (double)lastT/lastAll;
-			       		double localSm = (double)localT/localAll;
-					double lastSd = sqrt(pow((1.0-lastSm),2)*lastT+pow(lastSm,2)*(lastAll-lastT)/(lastAll-1));
+					/*double lastSd = sqrt(pow((1.0-lastSm),2)*lastT+pow(lastSm,2)*(lastAll-lastT)/(lastAll-1));
 					double localSd = sqrt(pow((1.0-localSm),2)*localT+pow(localSm,2)*(localAll-localT)/(localAll-1));
 					double v = lastAll+localAll-2;
 					double sp = sqrt(((lastAll-1) * lastSd * lastSd + (localAll-1) * localSd * localSd) / v);
 					double q;
-					double t=lastSm-localSm;
+					//double t=lastSm-localSm;
 					if(sp==0)q=1.0;
+					else if(lastAll+lastAll<2000){
+						q = abs(lastSm-localSm);
+					}
 					else{
 						double t = t/(sp*sqrt(1.0/lastAll+1.0/localAll));
 						boost::math::students_t dist(v);
 						double c = cdf(dist, t);
 						q = cdf(complement(dist, fabs(t)));
+					}*/
+					isUp = ((double)localSm-1.0/classes)/((double)lastSm-1.0/classes);
+					increaseRate = increaseRate/isUp;
+					//increaseRate += increaseRate*factor;
+					if(isUp>=1.0)isUp=pow(isUp, 2);
+					else{
+						isUp=pow(isUp, 3-isUp);
 					}
-					if(q<0.05){
-						isUp=0;
-					}else if(t<0){
-						isUp=-1.0;
-					}else{
-						isUp = ((double)localT/localAll-1.0/classes)/((double)lastT/lastAll-1.0/classes);
-						isUp = pow(isUp, 3);
-					}
+					retain = std::min((long)round(retain*isUp+increaseRate*size), retain+size);
+					//double factor = ((lastSm-localSm)/localSm)*abs((lastSm-localSm)/localSm)*increaseRate;
+					//retain += std::min((long)round(factor*retain+increaseRate*size), size);
+                			lastT = localT;
+               				lastAll = localAll;
 				}
-                	}
-                	lastT = localT;
-               		lastAll = localAll;
-                	if(isUp<0.0)retain=2147483647;
-                	else retain = (long)((double)DTree->size*isUp);
+				//printf("   %f, %f, %f\n", increaseRate, localSm, lastSm);
+                	}else{
+                		lastT = localT;
+               			lastAll = localAll;
+				retain = DTree->size+size;
+				forgetRate += 5.0;
+				//if(forgetRate==0){
+				//	increaseRate-=1.0-(double)localT/localAll;
+				//	increaseRate = initialIR;
+				//}
+			}
 		}
-		maxHeight = std::min((long)log2((double)retain)-1, maxHeightUpper);
+		//if(increaseRate>initialIR)increaseRate=initialIR;
+		//printf("%f\n", increaseRate);
+		if(retain<size)retain=size;
+		maxHeight = (long)log2((double)retain);
 		maxHeight = std::max(maxHeight, (long)1);
 		IncrementalUpdate(data, result, size, DTree);
 	}
@@ -596,7 +635,7 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 		for(i=0; i<current->size; i++){
 			index[i] = i;
 		}
-		std::shuffle(index, index+current->size, g);
+		if(isRF)std::shuffle(index, index+current->size, g);
 		long x = 0;
 		for(i=0;i<current->size;i++){
 			if(i>=current->size-forgetSize){
@@ -709,12 +748,20 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	cMin.eval = DBL_MAX;
 	cMin.values = nullptr;
 	long T[classes];
+	double HY=0;
 	for(i=0;i<classes;i++){
 		T[i] = 0;
 	}
 	for(i=0;i<size;i++){
 		j = resultNew[i];
 		T[j]++;
+	}
+	for(i=0;i<classes;i++){
+		if(evalue == Evaluation::entropy){
+			if(T[i]!=0)HY -= ((double)T[i]/size)*log2((double)T[i]/size);
+		}else{
+			HY += pow(((double)T[i]/size), 2);
+		}
 	}
 	for(i=0;i<maxFeature; i++){
 		long col = DTree->featureId[i];
@@ -741,7 +788,7 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	}
 	free(forgottenData);
 	free(forgottenClass);
-	if(cMin.eval==DBL_MAX){
+	if(cMin.eval==DBL_MAX or HY-cMin.eval<minIG){
 		current->terminate = true;
 		long t[classes];
 		for(i=0;i<classes;i++){
@@ -846,6 +893,7 @@ void DecisionTree::Update(double** data, long* result, long size, DT* current){
 	if(not current->created)createNode(current, current->height, feature, classes);
 	long low = 0;
 	long i, j;
+	double HY = 0;
 	// end condition
 	if(current->dataRecord!=nullptr)free(current->dataRecord);
 	current->dataRecord = data;
@@ -877,6 +925,11 @@ void DecisionTree::Update(double** data, long* result, long size, DT* current){
 			current->terminate = true;
 			current->result = i;
 			return;
+		}
+		if(evalue == Evaluation::entropy){
+			if(T[i]!=0)HY -= ((double)T[i]/size)*log2((double)T[i]/size);
+		}else{
+			HY += pow(((double)T[i]/size), 2);
 		}
 	}
 	// find min Evaluation
@@ -917,26 +970,31 @@ void DecisionTree::Update(double** data, long* result, long size, DT* current){
 			free(c.values);
 		}
 	}
-	if(cMin.eval == DBL_MAX){
+
+	if(cMin.eval == DBL_MAX or HY-cMin.eval<minIG){
 		current->terminate = true;
 		long max = 0;
+		long maxs[classes];
+		long count = 0;
 		for(i=1;i<classes;i++){
-			if(T[max]<T[i])max=i;
+			if(T[max]<T[i]){
+				max=i;
+			}
 		}
-		if(cMin.values!=nullptr)free(cMin.values);
 		current->result = max;
 		return;
 	}
+	//printf("   %f\n", HY-cMin.eval);
 	//diverse data
 	current->terminate = false;
 	current->feature = cFeature;
 	current->dpoint = cMin.value;
         long ptL=0, ptR=0;
 	//TODO: categorical
-	long* resultL = new long[left];
-	long* resultR = new long[size-left];
-	double** dataL = new double*[left];
-	double** dataR = new double*[size-left];
+	long* resultL = new long[size];
+	long* resultR = new long[size];
+	double** dataL = new double*[size];
+	double** dataR = new double*[size];
 	for(i=low; i<low+size; i++){
         	if(data[i][current->feature]<=current->dpoint){
 			dataL[ptL] = data[i];

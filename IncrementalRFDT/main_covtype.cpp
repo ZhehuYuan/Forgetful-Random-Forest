@@ -45,8 +45,8 @@ int main(int argc, char* argv[]){
         long noClasses = 7;
         long feature = 54;
         double*** data;
-	long memSize = 10000;
         long** result;
+	double ir = 0;
         int isSparse[54] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         char buf[1024] = { 0 };
         std::ifstream infile;
@@ -73,57 +73,77 @@ int main(int argc, char* argv[]){
         clock_t start,end;
         if(argv[1][0]=='0'){
 		RandomForest* test;
-		if(atol(argv[2])==0){
-        		test = new RandomForest(10, 11, feature, isSparse, -10.0, noClasses, Evaluation::gini);
+		if(atof(argv[2])==0){
+        		test = new RandomForest(20, 11, feature, isSparse, ir, noClasses, Evaluation::entropy);
+		}else{
+        		test = new RandomForest(20, 11, feature, isSparse, atof(argv[2]), noClasses, Evaluation::entropy);
 		}
 		for(kkk=0;kkk<no;kkk++){
-                	if(kkk>=20){
+				long localT=0;
+				long localTF=0;
 				if(kkk == no-1){
 					for(i=0; i<size-kkk*frag;i++){
-                				if(test->Test(data[kkk][i])==result[kkk][i])T++;
+                				if(test->Test(data[kkk][i])==result[kkk][i]){
+							if(kkk>=20)T++;
+							localT++;
+						}
 						TF++;
+						localTF++;
 					}
 				}else{
 					for(i=0; i<frag;i++){
-                				if(test->Test(data[kkk][i])==result[kkk][i])T++;
-						TF++;
+                				if(test->Test(data[kkk][i])==result[kkk][i]){
+							if(kkk>=20)T++;
+							localT++;
+						}
+						if(kkk>=20)TF++;
+						localTF++;
 					}
 				}
-			}
-			if(kkk!=no-1){
-				start = clock();
-				test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
-				t += (double)(clock()-start)/CLOCKS_PER_SEC;
-			}
+				//printf("%f\n", (double)localT/localTF);
+			if(kkk==no-1)continue;
+			start = clock();
+			test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
+			t += (double)(clock()-start)/CLOCKS_PER_SEC;
 		}
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
-	        if(atoi(argv[2])==0){
-			test= new DecisionTree(11, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, 2147483647);
-		}else{
-			test= new DecisionTree(11, feature, isSparse, 0.1, feature, noClasses, Evaluation::gini, rb);	
+		if(atof(argv[2])==0){
+			test= new DecisionTree(11, feature, isSparse, ir, feature, noClasses, Evaluation::entropy, 2147483647);
+                }else{
+			test= new DecisionTree(11, feature, isSparse, atof(argv[2]), feature, noClasses, Evaluation::entropy, 2147483647);
 		}
 		long maxSize = 0;
         	for(kkk=0;kkk<no;kkk++){
-			if(kkk>=20){
+				long localT = 0;
+				long localTF = 0;
 				if(kkk==no-1){
                                 	for(i=0; i<size-kkk*frag;i++){
-                                        	if(test->Test(data[kkk][i], test->DTree)==result[kkk][i])T++;
+                                        	if(test->Test(data[kkk][i], test->DTree)==result[kkk][i]){
+							T++;
+							localT++;
+						}
                                         	TF++;
+						localTF++;
                                 	}
 				}else{
 					for(i=0; i<frag;i++){
-                                                if(test->Test(data[kkk][i], test->DTree)==result[kkk][i])T++;
-                                                TF++;
+                                                if(test->Test(data[kkk][i], test->DTree)==result[kkk][i]){
+							if(kkk>=20)T++;
+							localT++;
+						}
+                                                if(kkk>=20)TF++;
+						localTF++;
                                         }
 				}
-                        }
-			if(kkk!=no-1){
-				start = clock();
-                		test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
-				t+=(double)(clock()-start)/CLOCKS_PER_SEC;
-                		if(test->DTree->size>maxSize)maxSize=test->DTree->size;
-			}
+				//printf("%f, %ld, %f\n", (double)localT/localTF, test->retain, test->increaseRate);
+				//test->print(test->DTree);
+				//printf("\n  ");
+			if(kkk==no-1)continue;
+			start = clock();
+                	test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
+			t+=(double)(clock()-start)/CLOCKS_PER_SEC;
+                	if(test->DTree->size>maxSize)maxSize=test->DTree->size;
 		}
 		printf("%ld\n", maxSize);
 	}

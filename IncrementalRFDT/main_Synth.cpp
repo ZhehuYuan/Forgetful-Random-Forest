@@ -41,9 +41,10 @@ int main(int argc, char* argv[]){
 	long rb=2147483647;
         long i,j,k, kkk=0;
         long frag = 100;
-        long size = 100000;
+        long size = 50000;
         long noClasses = 2;
         long feature = 10;
+	double ir = 0.1;
         double*** data;
         long** result;
         char buf[1024] = { 0 };
@@ -55,11 +56,10 @@ int main(int argc, char* argv[]){
         data = (double***)malloc(no*sizeof(double**));
         result = (long**)malloc(no*sizeof(long*));
         std::ifstream infile;
-	//const char* name[5] = {"synthetic_10_gradual", "synthetic_10_abrupt", "synthetic_100_gradual", "synthetic_100_abrupt"}; 
-	//std::string fname = name[atoi(argv[2])];
-	//std::string dname = "Synthetic/";
-	//infile.open(dname+fname, std::ios::in);
-	infile.open("Synthetic/2synthetic_100_gradual", std::ios::in);
+	const char* name[13] = {"synthetic_100_1", "synthetic_100_3", "synthetic_100_5", "synthetic_50_1", "synthetic_50_3", "synthetic_50_5", "synthetic_20_1", "synthetic_20_3", "synthetic_20_5", "5_synthetic_50_3", "10_synthetic_50_3", "15_synthetic_50_3", "20_synthetic_50_3"}; 
+	std::string fname = name[atoi(argv[2])];
+	std::string dname = "Synthetic/";
+	infile.open(dname+fname, std::ios::in);
         for(i=0;i<no;i++){
                 data[i] = (double**)malloc(frag*sizeof(double*));
                 result[i] = (long*)malloc(frag*sizeof(long));
@@ -80,7 +80,12 @@ int main(int argc, char* argv[]){
 	long maxSize = 0;
         if(argv[1][0]=='0'){
 		RandomForest* test;
-        	test = new RandomForest(10, 8, feature, isSparse, -10.0, noClasses, Evaluation::gini);
+                if(atof(argv[3])==0){
+        		test = new RandomForest(10, 8, feature, isSparse, ir, noClasses, Evaluation::gini);
+                }else{
+        		test = new RandomForest(10, 8, feature, isSparse, atof(argv[3]), noClasses, Evaluation::gini);
+                }
+
         	for(kkk=0;kkk<no;kkk++){
                 	if(kkk>=20){
 				if(kkk == no-1){
@@ -103,7 +108,11 @@ int main(int argc, char* argv[]){
 		}
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
-		test= new DecisionTree(8, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, rb);
+		if(atof(argv[3])==0){
+			test= new DecisionTree(8, feature, isSparse, ir, feature, noClasses, Evaluation::gini, rb);
+		}else{
+			test= new DecisionTree(8, feature, isSparse, atof(argv[3]), feature, noClasses, Evaluation::gini, rb);
+		}
         	for(kkk=0;kkk<no;kkk++){
 			if(kkk>=20){
 				if(kkk==no-1){

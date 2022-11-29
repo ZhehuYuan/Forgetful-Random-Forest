@@ -16,13 +16,13 @@ public:
 
 long maxTree;
 long activeTree;
-bool* treePointer;
 long* allT;
 double threshold;
-DecisionTree** DTrees = nullptr;
+DecisionTree** DTrees;
+DecisionTree** backupTrees;
 
 long height;
-long Rebuild;
+bool bagging;
 long f;
 int* sparse;
 double forget;
@@ -32,7 +32,7 @@ long lastT;
 long lastAll;
 int minF;
 
-RandomForest(long maxTree, int height, long f, int* sparse, double forget, long noClasses=2, Evaluation e=Evaluation::gini, long rb=2147483647);
+RandomForest(long maxTree, int height, long f, int* sparse, double forget, long noClasses=2, Evaluation e=Evaluation::entropy, bool b=false);
 
 void fit(double** data, long* result, long size);
 

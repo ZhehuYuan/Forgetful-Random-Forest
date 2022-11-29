@@ -38,8 +38,6 @@ int main(int argc, char* argv[]){
 		printf("Please input parameters: [0 for random forest or 1 for decision tree] [0 to 2 for different settings]\n");
 		return -1;
 	}
-	long rb = 1000000;
-	if(argc==4) rb=atol(argv[3]);
         long i,j,k, kkk=0;
         long frag = 100;
         long size = 11055;
@@ -48,10 +46,9 @@ int main(int argc, char* argv[]){
         long feature = 46;
         double*** data;
         long** result;
-	long memSize = 1600;
-	long maxH = 6;
         int isSparse[46]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         char buf[1024] = { 0 };
+	double ir = 0;
         std::ifstream infile;
         infile.open("phishing/phishing", std::ios::in);
 
@@ -75,49 +72,78 @@ int main(int argc, char* argv[]){
                 result[i/frag][i%frag] = atoi(buf);
         }
 
-        long count=0, total=0;
+        long count=0, total=0, TPos=0, TNeg=0, FPos=0;
 	double time=0.0;
         clock_t start,end;
         if(argv[1][0]=='0'){
 		RandomForest* test;
-		if(atol(argv[2])==0){
-        		test = new RandomForest(10, 8, feature, isSparse, -10.0, noClasses, Evaluation::gini);
+		if(atof(argv[2])==0){
+        		test = new RandomForest(20, 8, feature, isSparse, ir, noClasses, Evaluation::entropy, atoi(argv[3])!=0);
+                }else{
+        		test = new RandomForest(20, 8, feature, isSparse, atof(argv[2]), noClasses, Evaluation::entropy, atoi(argv[3])!=0);
                 }
         	for(kkk=0;kkk<=no;kkk++){
+			long localT=0;
 			if(kkk!=no){
-				if(kkk>=20){
-					total += frag;
-					for(i=0; i<frag; i++){
-                				if(test->Test(data[kkk][i])==result[kkk][i])count++;
+				if(kkk>=20)total += frag;
+				for(i=0; i<frag; i++){
+                			if(test->Test(data[kkk][i])==result[kkk][i]){
+						if(kkk>=20){
+							count++;
+							if(result[kkk][i]==1)TPos++;
+							else TNeg++;
+						}
+						localT++;
+					}else if(kkk>=20 and result[kkk][i]==0){
+						FPos++;
 					}
 				}
+				//printf("%f\n", (double)localT/frag);
 				start = clock();
                 		test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
 				time += (double)(clock()-start)/CLOCKS_PER_SEC;
 			}else{
 				total += size-frag*no;
 				for(i=0; i<size-frag*no; i++){
-                			if(test->Test(data[kkk][i])==result[kkk][i])count++;
+                			if(test->Test(data[kkk][i])==result[kkk][i]){
+						count++;
+						localT++;
+						if(result[kkk][i]==1)TPos++;
+						else TNeg++;
+					}else if(result[kkk][i]==0){
+						FPos++;
+					}
 				}
+				//printf("%f\n", (double)localT/(size-frag*no));
 			}
 		}
 		printf("%f\n%f\n", time, (double)count/total);
+		printf("%f\n", (2.0*TPos)/(2.0*TPos+FPos+TNeg));
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
-		if(atoi(argv[2])==0){
-			test= new DecisionTree(8, feature, isSparse, -10.0, feature, noClasses, Evaluation::gini, 2147483647);
+		if(atof(argv[2])==0){
+			test= new DecisionTree(8, feature, isSparse, ir, feature, noClasses, Evaluation::entropy, 2147483647);
 		}else{
-			test= new DecisionTree(8, feature, isSparse, 0, feature, noClasses, Evaluation::gini, 2147483647);	
+			test= new DecisionTree(8, feature, isSparse, atof(argv[2]), feature, noClasses, Evaluation::entropy, 2147483647);	
 		}
         	long maxSize = 0;
         	for(kkk=0;kkk<=no;kkk++){
+			long localT=0;
 			if(kkk!=no){
-				if(kkk>=20){
-					total += frag;
+					if(kkk>=20)total += frag;
 					for(i=0; i<frag; i++){
-                				if(test->Test(data[kkk][i], test->DTree)==result[kkk][i])count++;
+                				if(test->Test(data[kkk][i], test->DTree)==result[kkk][i]){
+							if(kkk>=20){
+								count++;
+								if(result[kkk][i]==1)TPos++;
+								else TNeg++;
+							}
+							localT++;
+						}else if(kkk>=20 and result[kkk][i]==0){
+							FPos++;
+						}
 					}
-				}
+					//printf("%f\n", (double)localT/frag);
 				start = clock();
                 		test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
 				time += (double)(clock()-start)/CLOCKS_PER_SEC;
@@ -125,11 +151,21 @@ int main(int argc, char* argv[]){
 			}else{
 				total += size-frag*no;
 				for(i=0; i<size-frag*no; i++){
-                			if(test->Test(data[kkk][i], test->DTree)==result[kkk][i])count++;
+                			if(test->Test(data[kkk][i], test->DTree)==result[kkk][i]){
+						count++;
+						localT++;
+						if(result[kkk][i]==1)TPos++;
+						else TNeg++;
+					}else if(result[kkk][i]==0){
+						FPos++;
+					}
 				}
+				if(maxSize<test->DTree->size)maxSize = test->DTree->size;
+				//printf("%f\n", (double)localT/(size-frag*no));
 			}
 		}
 		printf("%f\n%f\n%ld\n", time, (double)count/total, maxSize);
+		printf("%f\n", (2.0*TPos)/(2.0*TPos+FPos+TNeg));
 	}
 }
 

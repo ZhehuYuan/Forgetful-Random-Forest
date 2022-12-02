@@ -1,9 +1,9 @@
 default:
-	g++ main_covtype.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o cov.out
-	g++ main_phi.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o phi.out
-	g++ main_Synth.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o synthetic.out
-	g++ main_elec.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o elec.out
-	g++ main_mixed.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o mix.out
+	g++ -std=c++11 main_covtype.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o cov.out
+	g++ -std=c++11 main_phi.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o phi.out
+	g++ -std=c++11 main_Synth.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o synthetic.out
+	g++ -std=c++11 main_elec.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o elec.out
+	g++ -std=c++11 main_mixed.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o mix.out
 
 testMix:
 	g++ -g -fno-stack-protector main_mixed.cpp incrementalDecisionTree.cpp Evaluation.cpp RF.cpp -o mix.out

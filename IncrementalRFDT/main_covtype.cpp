@@ -74,9 +74,9 @@ int main(int argc, char* argv[]){
         if(argv[1][0]=='0'){
 		RandomForest* test;
 		if(atof(argv[2])==0){
-        		test = new RandomForest(20, 11, feature, isSparse, ir, noClasses, Evaluation::entropy);
+        		test = new RandomForest(20, 11, feature, isSparse, ir, noClasses, Evaluation::entropy, atoi(argv[3])!=0);
 		}else{
-        		test = new RandomForest(20, 11, feature, isSparse, atof(argv[2]), noClasses, Evaluation::entropy);
+        		test = new RandomForest(20, 11, feature, isSparse, atof(argv[2]), noClasses, Evaluation::entropy, atoi(argv[3])!=0);
 		}
 		for(kkk=0;kkk<no;kkk++){
 				long localT=0;

@@ -20,8 +20,8 @@ struct DT{
         // Sparse data record
         double** sortedData; // for each feature, sorted data
         long** sortedResult;
-
-        // Dense data record
+        
+	// Dense data record
         long*** count = nullptr;// for each feature, number of data belongs to each class and dense value 
         double** record = nullptr;// for each feature, record each dense data
         long* max = nullptr;// number of dense value of each feature
@@ -29,7 +29,7 @@ struct DT{
         //long* T; // number of data in each class in this node
         double** dataRecord = nullptr;// Record the data
         long* resultRecord = nullptr;// Record the result
-        long size = 0;// Size of the dataset
+	long size = 0;// Size of the dataset
 };
 
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
                 result[i/frag][i%frag] = atoi(buf);
         }
 
-        long count=0, total=0, TPos=0, TNeg=0, FPos=0;
+        long count=0, total=0, TPos=0, FNeg=0, FPos=0;
 	double time=0.0;
         clock_t start,end;
         if(argv[1][0]=='0'){
@@ -84,18 +84,20 @@ int main(int argc, char* argv[]){
                 }
         	for(kkk=0;kkk<=no;kkk++){
 			long localT=0;
+			printf("%ld\n", kkk);
 			if(kkk!=no){
-				if(kkk>=20)total += frag;
+				if(kkk>=5)total += frag;
 				for(i=0; i<frag; i++){
                 			if(test->Test(data[kkk][i])==result[kkk][i]){
-						if(kkk>=20){
+						if(kkk>=5){
 							count++;
 							if(result[kkk][i]==1)TPos++;
-							else TNeg++;
 						}
 						localT++;
-					}else if(kkk>=20 and result[kkk][i]==0){
+					}else if(kkk>=5 and result[kkk][i]==0){
 						FPos++;
+					}else if(kkk>=5){
+						FNeg++;
 					}
 				}
 				//printf("%f\n", (double)localT/frag);
@@ -109,16 +111,19 @@ int main(int argc, char* argv[]){
 						count++;
 						localT++;
 						if(result[kkk][i]==1)TPos++;
-						else TNeg++;
 					}else if(result[kkk][i]==0){
 						FPos++;
+					}else{
+						FNeg++;
 					}
 				}
 				//printf("%f\n", (double)localT/(size-frag*no));
 			}
 		}
 		printf("%f\n%f\n", time, (double)count/total);
-		printf("%f\n", (2.0*TPos)/(2.0*TPos+FPos+TNeg));
+		printf("%f\n", (2.0*TPos)/(2.0*TPos+FPos+FNeg));
+		printf("%f\n",(double)TPos/(TPos+FPos));
+		printf("%f\n",(double)TPos/(TPos+FNeg));
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
 		if(atof(argv[2])==0){
@@ -130,17 +135,18 @@ int main(int argc, char* argv[]){
         	for(kkk=0;kkk<=no;kkk++){
 			long localT=0;
 			if(kkk!=no){
-					if(kkk>=20)total += frag;
+					if(kkk>=5)total += frag;
 					for(i=0; i<frag; i++){
                 				if(test->Test(data[kkk][i], test->DTree)==result[kkk][i]){
-							if(kkk>=20){
+							if(kkk>=5){
 								count++;
 								if(result[kkk][i]==1)TPos++;
-								else TNeg++;
 							}
 							localT++;
-						}else if(kkk>=20 and result[kkk][i]==0){
+						}else if(kkk>=5 and result[kkk][i]==0){
 							FPos++;
+						}else if(kkk>=5){
+							FNeg++;
 						}
 					}
 					//printf("%f\n", (double)localT/frag);
@@ -155,17 +161,20 @@ int main(int argc, char* argv[]){
 						count++;
 						localT++;
 						if(result[kkk][i]==1)TPos++;
-						else TNeg++;
 					}else if(result[kkk][i]==0){
 						FPos++;
+					}else{
+						FNeg++;
 					}
 				}
 				if(maxSize<test->DTree->size)maxSize = test->DTree->size;
 				//printf("%f\n", (double)localT/(size-frag*no));
 			}
 		}
-		printf("%f\n%f\n%ld\n", time, (double)count/total, maxSize);
-		printf("%f\n", (2.0*TPos)/(2.0*TPos+FPos+TNeg));
+		printf("%f\n%f\n", time, (double)count/total);
+		printf("%f\n", (2.0*TPos)/(2.0*TPos+FPos+FNeg));
+		printf("%f\n",(double)TPos/(TPos+FPos));
+		printf("%f\n",(double)TPos/(TPos+FNeg));
 	}
 }
 

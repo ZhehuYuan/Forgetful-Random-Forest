@@ -84,27 +84,32 @@ int main(int argc, char* argv[]){
 				if(kkk == no-1){
 					for(i=0; i<size-kkk*frag;i++){
                 				if(test->Test(data[kkk][i])==result[kkk][i]){
-							if(kkk>=20)T++;
+							T++;
 							localT++;
 						}
 						TF++;
 						localTF++;
 					}
-				}else{
+				}else if(kkk!=0){
 					for(i=0; i<frag;i++){
                 				if(test->Test(data[kkk][i])==result[kkk][i]){
-							if(kkk>=20)T++;
+							if(kkk>=60)T++;
 							localT++;
 						}
-						if(kkk>=20)TF++;
+						if(kkk>=60)TF++;
 						localTF++;
 					}
 				}
-				//printf("%f\n", (double)localT/localTF);
+				//printf("%f	%ld\n", (double)localT/localTF, sumRetain);
 			if(kkk==no-1)continue;
 			start = clock();
 			test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
 			t += (double)(clock()-start)/CLOCKS_PER_SEC;
+			/*if(kkk>=1){
+				long sumRetain = 0;
+				for(i=0; i<15; i++)sumRetain+=test->DTrees[i]->retain;
+				//printf("%f	%ld\n", (double)(clock()-start)/CLOCKS_PER_SEC, sumRetain);
+			}*/
 		}
 	}else if(argv[1][0]=='1'){
 		DecisionTree* test;
@@ -126,17 +131,17 @@ int main(int argc, char* argv[]){
                                         	TF++;
 						localTF++;
                                 	}
-				}else{
+				}else if(kkk!=0){
 					for(i=0; i<frag;i++){
                                                 if(test->Test(data[kkk][i], test->DTree)==result[kkk][i]){
-							if(kkk>=20)T++;
+							if(kkk>=60)T++;
 							localT++;
 						}
-                                                if(kkk>=20)TF++;
+                                                if(kkk>=60)TF++;
 						localTF++;
                                         }
 				}
-				//printf("%f, %ld, %f\n", (double)localT/localTF, test->retain, test->increaseRate);
+				//printf("%f\n", (double)localT/localTF);
 				//test->print(test->DTree);
 				//printf("\n  ");
 			if(kkk==no-1)continue;
@@ -145,7 +150,7 @@ int main(int argc, char* argv[]){
 			t+=(double)(clock()-start)/CLOCKS_PER_SEC;
                 	if(test->DTree->size>maxSize)maxSize=test->DTree->size;
 		}
-		printf("%ld\n", maxSize);
+		/*printf("%ld\n", maxSize);*/
 	}
 	printf("%f\n%f\n", t, (double)T/TF);
 }

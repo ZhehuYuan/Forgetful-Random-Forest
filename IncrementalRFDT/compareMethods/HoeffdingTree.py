@@ -15,13 +15,13 @@ from sklearn.linear_model import SGDClassifier as SGDC
 
 def Synth(modelID, dataId):
     if modelID==1:
-        ht = HoeffdingTreeClassifier()
+        ht = HoeffdingTreeClassifier(max_byte_size=200*1024*1024*1024, leaf_prediction="nba")
     elif modelID==2:
-        ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
+        ht = HoeffdingAdaptiveTreeClassifier(leaf_prediction="nb", split_confidence=0.0001, max_byte_size=200*1024*1024*1024)
     elif modelID==3:
-        ht = iSOUPTreeRegressor(tie_threshold=0.5)
+        ht = iSOUPTreeRegressor(max_byte_size=200*1024*1024*1024, leaf_prediction="adaptive")
     elif modelID==4:
-        ht = AdaptiveRandomForestClassifier(20, 3)
+        ht = AdaptiveRandomForestClassifier(100, max_byte_size=200*1024*1024*1024)
     else:
         print("wrong model ID\n")
         exit(0)
@@ -60,26 +60,12 @@ def Synth(modelID, dataId):
             result.append(int(float(line[-1])))
     f.close()
     
-    if dataId==0:
-        f = open("gradual"+str(modelID), "w")
-    elif dataId==1:
-        f = open("abrupto"+str(modelID), "w")
-    elif dataId==2:
-        f = open("50_gradual"+str(modelID), "w")
-    elif dataId==3:
-        f = open("25_gradual"+str(modelID), "w")
-    elif dataId==4:
-        f = open("10_gradual"+str(modelID), "w")
-
     t = 0.0
     length = len(data)
     T = 0
     TF = 0
     start = 0
     gap = 100
-    TPos = 0
-    FPos = 0
-    TNeg = 0
     while start<length:
         end = min(start+gap, length)
         X = data[start:end]
@@ -88,7 +74,7 @@ def Synth(modelID, dataId):
             localT = 0
             localTF = 0
             for i in range(start, end):
-                if start >= 20*gap:
+                if start >= 10*gap:
                     TF+=1
                 localTF+=1
                 x = ht.predict(np.array([data[i]]))[0]
@@ -96,26 +82,13 @@ def Synth(modelID, dataId):
                     x = x.tolist()
                     x=x.index(max(x))
                     if x == result[i].index(max(result[i])):
-                        if start >= 20*gap:
+                        if start >= 10*gap:
                             T+=1
-                            if x==1:
-                                TPos += 1
-                            else:
-                                TNeg += 1
                         localT+=1
-                    elif start>=20*gap and x==1:
-                        FPos+=1
                 else:
                     if x == result[i]:
-                        if start >= 20*gap:
+                        if start >= 10*gap:
                             T+=1
-                            if x==1:
-                                TPos += 1
-                            else:
-                                TNeg += 1
-                        localT+=1
-                    elif start>=20*gap and x==1:
-                        FPos+=1
             #f.write(str(localT/localTF))
             #f.write("\n")
         if(end!=length):
@@ -126,22 +99,17 @@ def Synth(modelID, dataId):
                 ht.partial_fit(np.array(X), np.array(y))
             t+=time.time()-t1
         start = end
-    print(t)
-    print(T/TF)
-    print(TPos)
-    print(TNeg)
-    print(FPos)
-    print((2*TPos)/(2*TPos+TNeg+FPos))
+    print(("Mix"+str(modelID)+str(dataId), t, T/TF))
 
 def CovType(modelID):
     if modelID==1:
-        ht = HoeffdingTreeClassifier()
+        ht = HoeffdingTreeClassifier(leaf_prediction="nba", max_byte_size=200*1024*1024*1024)
     elif modelID==2:
-        ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
+        ht = HoeffdingAdaptiveTreeClassifier(leaf_prediction="nb", split_confidence=0.0001, max_byte_size=200*1024*1024*1024)
     elif modelID==3:
-        ht = iSOUPTreeRegressor(tie_threshold=0.5)
+        ht = iSOUPTreeRegressor(max_byte_size=200*1024*1024*1024, leaf_prediction="adaptive")
     elif modelID==4:
-        ht = AdaptiveRandomForestClassifier(20, 8)
+        ht = AdaptiveRandomForestClassifier(100, max_byte_size=200*1024*1024*1024)
     else:
         print("wrong model ID\n")
         exit(0)
@@ -163,8 +131,6 @@ def CovType(modelID):
             result.append(int(float(line[-1])))
     f.close()
     
-    f = open("covtype"+str(modelID), "w")
-
     t = 0.0
     length = 581012
     T = 0
@@ -179,7 +145,7 @@ def CovType(modelID):
             localT = 0
             localTF = 0
             for i in range(start, end):
-                if start >= 20*gap:
+                if start >= 60*gap:
                     TF+=1
                 localTF+=1
                 x = ht.predict(np.array([data[i]]))[0]
@@ -187,12 +153,12 @@ def CovType(modelID):
                     x = x.tolist()
                     x=x.index(max(x))
                     if x == result[i].index(max(result[i])):
-                        if start >= 20*gap:
+                        if start >= 60*gap:
                             T+=1
                         localT+=1
                 else:
                     if x == result[i]:
-                        if start >= 20*gap:
+                        if start >= 60*gap:
                             T+=1
                         localT+=1
             #f.write(str(localT/localTF))
@@ -205,18 +171,17 @@ def CovType(modelID):
                 ht.partial_fit(np.array(X), np.array(y))
             t+=time.time()-t1
         start = end
-    print(t)
-    print(T/TF)
+    print(("Cov"+str(modelID), t, T/TF))
 
 def Elec(modelID):
     if modelID==1:
-        ht = HoeffdingTreeClassifier()
+        ht = HoeffdingTreeClassifier(leaf_prediction="nb", max_byte_size=200*1024*1024*1024)
     elif modelID==2:
-        ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
+        ht = HoeffdingAdaptiveTreeClassifier(leaf_prediction="nb", grace_period=300, split_confidence=0.0001, max_byte_size=200*1024*1024*1024)
     elif modelID==3:
-        ht = iSOUPTreeRegressor(tie_threshold=0.5)
+        ht = iSOUPTreeRegressor(max_byte_size=200*1024*1024*1024, leaf_prediction="adaptive")
     elif modelID==4:
-        ht = AdaptiveRandomForestClassifier(20, 3)
+        ht = AdaptiveRandomForestClassifier(100, max_byte_size=200*1024*1024*1024)
     else:
         print("wrong model ID\n")
         exit(0)
@@ -227,10 +192,6 @@ def Elec(modelID):
     sizeTrain = 0
     T = 0
     TF = 0
-    TPos = 0
-    TNeg = 0
-    FPos = 0
-    ff = open("elec"+str(modelID), "w")
     for ii in range(1, 944):
         f = open("../electricity/electricity"+str(ii)+".txt", "r")
         data = []
@@ -264,27 +225,15 @@ def Elec(modelID):
                     else:
                             aaa = 1
                     if aaa == int(result[j][1]>=result[j][0]):
-                        if ii>20:
+                        if ii>1:
                             T+=1
-                            if aaa==1:
-                                TPos += 1
-                            else:
-                                TNeg += 1
                         localT+=1
-                    elif ii>20 and aaa==1:
-                        FPos+=1
                 else:
                     if x[j]==result[j]:
-                        if ii>20:
+                        if ii>1:
                             T+=1
-                            if x[j]==1:
-                                TPos += 1
-                            else:
-                                TNeg += 1
                         localT+=1
-                    elif ii>20 and x[j]==1:
-                        FPos+=1
-                if ii>20:
+                if ii>1:
                     TF+=1
             #ff.wirte(str(localT/localTF))
             #ff.write("\n")
@@ -292,12 +241,7 @@ def Elec(modelID):
             t1 = time.time()
             ht.partial_fit(data, result)
             t += time.time()-t1
-    print(t)
-    print(str(T/TF))
-    print(TPos)
-    print(TNeg)
-    print(FPos)
-    print((2*TPos)/(2*TPos+TNeg+FPos))
+    print(("Elec"+str(modelID), t, T/TF))
 
 def Phishing(modelID):
     f = open("../phishing/phishing", "r")
@@ -322,18 +266,17 @@ def Phishing(modelID):
     record = [[] for x in data[0]]
 
     if modelID==1:
-        ht = HoeffdingTreeClassifier()
+        ht = HoeffdingTreeClassifier(leaf_prediction="nba", max_byte_size=200*1024*1024*1024)
     elif modelID==2:
-        ht = HoeffdingAdaptiveTreeClassifier(grace_period=300, split_confidence=0.0001)
+        ht = HoeffdingAdaptiveTreeClassifier(leaf_prediction="nb", grace_period=300, split_confidence=0.0001, max_byte_size=200*1024*1024*1024)
     elif modelID==3:
-        ht = iSOUPTreeRegressor(tie_threshold=0.5)
+        ht = iSOUPTreeRegressor(max_byte_size=200*1024*1024*1024, leaf_prediction="adaptive")
     elif modelID==4:
-        ht = AdaptiveRandomForestClassifier(20, 7)
+        ht = AdaptiveRandomForestClassifier(100, max_byte_size=200*1024*1024*1024)
     else:
         print("wrong model ID\n")
         exit(0)
 
-    f = open("phi"+str(modelID), "w")
 
     t = 0.0
     length = 11055
@@ -342,7 +285,7 @@ def Phishing(modelID):
     start = 0
     gap = 100
     TPos = 0
-    TNeg = 0
+    FNeg = 0
     FPos = 0
     while start<length:
         end = min(start+gap, length)
@@ -352,7 +295,7 @@ def Phishing(modelID):
             localT=0
             localTF=0
             for i in range(start, end):
-                if start >= 2000:
+                if start >= 500:
                     TF+=1
                 localTF+=1
                 x = ht.predict([data[i]])[0]
@@ -362,26 +305,26 @@ def Phishing(modelID):
                     else:
                         x = 1
                     if result[i][x] > result[i][abs(1-x)]:
-                        if start >= 2000:
+                        if start >= 500:
                             T+=1
                             if x==1:
                                 TPos += 1
-                            else:
-                                TNeg += 1
                         localT+=1
-                    elif start>=2000 and x==1:
+                    elif start>=500 and x==1:
                         FPos+=1
+                    elif start>=500:
+                        FNeg+=1
                 else:
                     if x == result[i]:
-                        if start >= 2000:
+                        if start >= 500:
                             T+=1
                             if x==1:
                                 TPos += 1
-                            else:
-                                TNeg += 1
                         localT+=1
-                    elif start>=2000 and x==1:
+                    elif start>=500 and x==1:
                         FPos+=1
+                    elif start>=500:
+                        FNeg+=1
             #f.write(str(localT/localTF))
             #f.write("\n")
         if(end!=length):
@@ -389,13 +332,7 @@ def Phishing(modelID):
             ht.partial_fit(X, y)
             t+=time.time()-t1
         start = end
-    print(t)
-    print(T/TF)
-    print(TPos)
-    print(TNeg)
-    print(FPos)
-    print(T)
-    print((2*TPos)/(2*TPos+TNeg+FPos))
+    print(("Phi"+str(modelID), t, T/TF, (2*TPos)/(2*TPos+FNeg+FPos), TPos/(TPos+FNeg), TPos/(TPos+FPos)))
 
 if __name__=="__main__":
     dataset = sys.argv[1]
@@ -406,8 +343,6 @@ if __name__=="__main__":
         CovType(modelID)
     elif dataset=="phi":
         Phishing(modelID)
-    elif dataset=="M5":
-        M5(modelID)
     elif dataset=="Elec":
         Elec(modelID)
     else:

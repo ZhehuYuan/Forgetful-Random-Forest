@@ -19,7 +19,7 @@ long poisson(int Lambda)
 		p *= u;
 		k++;
 	}
-	//return std::min(k-1, 1);
+	if (k>11)k=11;
 	return k-1;
 }
 struct DT{
@@ -159,26 +159,20 @@ void RandomForest::fit(double** data, long* result, long size){
 		long times;
 	       	if(bagging)times = poisson(6);
 		else times=1;
-		//printf("%ld\n", times);
 		if(times==0)continue;
-		//times = 1;
 		newData = (double**)malloc(sizeof(double*)*size*times);
 		newResult = (long*)malloc(sizeof(long)*size*times);
-		//newData = (double**)malloc(sizeof(double*)*size);
-		//newResult = (long*)malloc(sizeof(long)*size);
 		long c = 0;
-		for(k = 0; k<times; k++){
-			for(j = 0; j<size*times; j++){
-				long jj;
-			       	if(bagging) jj = rand()%size;
-				else jj=j;
-				newData[j] = (double*)malloc((f+1)*sizeof(double));
-				for(l=0; l<f; l++){
-					newData[j][l] = data[jj][l];
-				}
-				newData[j][f] = 0;
-				newResult[j] = result[jj];
+		for(j = 0; j<size*times; j++){
+			long jj;
+		       	if(bagging) jj = rand()%size;
+			else jj=j;
+			newData[j] = (double*)malloc((f+1)*sizeof(double));
+			for(l=0; l<f; l++){
+				newData[j][l] = data[jj][l];
 			}
+			newData[j][f] = 0;
+			newResult[j] = result[jj];
 		}
 		DTrees[i]->fit(newData, newResult, size*times);
 	}

@@ -8,7 +8,6 @@
 #include <float.h>
 #include <ctime>
 #include <random>
-#include <boost/math/distributions/students_t.hpp>
 
 std::random_device rd;
 std::mt19937 g(rd());
@@ -144,7 +143,6 @@ void freeTree(DT* t){
 DecisionTree::DecisionTree(int height, long f, int* sparse, double rate, long maxF, long noClasses, Evaluation e, long rb){
 	evalue = e;
 	long i;
-	minIG = 0.005;
 	// Max tree height
 	maxHeight = height;
 	maxHeightUpper = height;
@@ -177,11 +175,11 @@ DecisionTree::DecisionTree(int height, long f, int* sparse, double rate, long ma
 	createNode(DTree, 0, f, noClasses);
 	// Number of classes of this dataset
 	Rebuild = rb;
-	roundNo = 0;
+	roundNo = 64;
 	classes = std::max(noClasses, (long)2);
 	// last Acc
-	lastAll = 0;
-	lastT = 0;
+	lastAll = classes;
+	lastT = 1;
 }
 
 void DecisionTree::Stablelize(){
@@ -503,7 +501,6 @@ minEval DecisionTree::findMinGiniDense(double** data, long* result, long* totalT
 }
 
 void DecisionTree::fit(double** data, long* result, long size){
-	roundNo++;
         double isUp = -1.0;
 	long localT = 0;
         long localAll = 0;
@@ -515,18 +512,31 @@ void DecisionTree::fit(double** data, long* result, long size){
                 		if(Test(data[j], DTree)==result[j])localT++;
                         	localAll++;
                 	}
+			double guessAcc;
+			guessAcc = 1.0/classes;
                 	if(forgetRate==0.0){
 				double lastSm = (double)lastT/lastAll;
 			       	double localSm = (double)localT/localAll;
-				if(localSm <= 1.0/classes){
+				/*long guesses[classes], i;
+			       	for(i=0; i<classes; i++)guesses[i]=0;
+				for(i=0; i<DTree->size; i++){
+					guesses[DTree->resultRecord[i]]++;
+				}
+				for(i=0; i<size; i++){
+					guessAcc += (double)guesses[result[i]]/DTree->size/size;
+				}*/
+				if(localSm <= guessAcc){
+				//if(localSm <= 1.0/classes){
                 			lastT = localT;
                				lastAll = localAll;
 					retain = size;
 					//increaseRate = 1.0-localSm;
 				}
-				else if(lastSm <= 1.0/classes){
+				else if(lastSm <= guessAcc){
+				//else if(lastSm <= 1.0/classes){
                 			lastT = localT;
                				lastAll = localAll;
+					//forgetRate=-5.0;
 					retain += size;
 					//increaseRate -= localSm;
 					//increaseRate = initialIR;
@@ -557,7 +567,8 @@ void DecisionTree::fit(double** data, long* result, long size){
 						double c = cdf(dist, t);
 						q = cdf(complement(dist, fabs(t)));
 					}*/
-					isUp = ((double)localSm-1.0/classes)/((double)lastSm-1.0/classes);
+					isUp = ((double)localSm-guessAcc)/((double)lastSm-guessAcc);
+					//isUp = ((double)localSm-1.0/classes)/((double)lastSm-1.0/classes);
 					increaseRate = increaseRate/isUp;
 					//increaseRate += increaseRate*factor;
 					if(isUp>=1.0)isUp=pow(isUp, 2);
@@ -572,14 +583,31 @@ void DecisionTree::fit(double** data, long* result, long size){
 				}
 				//printf("   %f, %f, %f\n", increaseRate, localSm, lastSm);
                 	}else{
+				long i;
+				retain = DTree->size+size;
+				/*double guessAcc=0.0;
+				long guesses[classes];
+			       	for(i=0; i<classes; i++)guesses[i]=0;
+				for(i=0; i<DTree->size; i++){
+					guesses[DTree->resultRecord[i]]++;
+				}
+				for(i=0; i<size; i++){
+					guessAcc += (double)guesses[result[i]]/DTree->size/size;
+				}*/
+				while(retain>=roundNo){
+					if((double)localT/localAll>guessAcc){
+						forgetRate+=5.0;
+					}
+					roundNo*=2;
+				}
+				if((double)localT/localAll<=guessAcc){
+					forgetRate=-10.0;
+				}
+				if(forgetRate>=0){
+					forgetRate=0.0;
+				}
                 		lastT = localT;
                			lastAll = localAll;
-				retain = DTree->size+size;
-				forgetRate += 5.0;
-				//if(forgetRate==0){
-				//	increaseRate-=1.0-(double)localT/localAll;
-				//	increaseRate = initialIR;
-				//}
 			}
 		}
 		//if(increaseRate>initialIR)increaseRate=initialIR;
@@ -713,7 +741,7 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	current->size -= forgetSize;
 	current->size += size;
 	// end condition
-	if(current->terminate or roundNo%Rebuild==0 or current->height==maxHeight or current->size==1){
+	if(current->terminate or current->height==maxHeight or current->size==1){
 		for(i=0;i<feature;i++){
 			for(j=0; j<classes; j++){
 				free(forgottenData[i][j]);
@@ -788,7 +816,7 @@ void DecisionTree::IncrementalUpdate(double** data, long* result, long size, DT*
 	}
 	free(forgottenData);
 	free(forgottenClass);
-	if(cMin.eval==DBL_MAX or HY-cMin.eval<minIG){
+	if(cMin.eval==DBL_MAX){
 		current->terminate = true;
 		long t[classes];
 		for(i=0;i<classes;i++){
@@ -971,7 +999,7 @@ void DecisionTree::Update(double** data, long* result, long size, DT* current){
 		}
 	}
 
-	if(cMin.eval == DBL_MAX or HY-cMin.eval<minIG){
+	if(cMin.eval == DBL_MAX){
 		current->terminate = true;
 		long max = 0;
 		long maxs[classes];

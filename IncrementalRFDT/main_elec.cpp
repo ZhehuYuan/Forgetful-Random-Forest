@@ -65,7 +65,7 @@ int main(int argc, char* argv[]){
 	double tmp;
 	long c = 0;
 	
-	long T = 0, all = 0, TPos = 0, TNeg = 0, FPos = 0;
+	long T = 0, all = 0;
 	if(argv[1][0]=='0'){
 		RandomForest* test;
 	       	if(atof(argv[2])==0){
@@ -101,16 +101,12 @@ int main(int argc, char* argv[]){
 				long localTF = 0;
 				for(j=0; j<c; j++){
 					if(test->Test(data[j])==result[j]){
-						if(i>20){
-							if(result[j]==1)TPos++;
-							else TNeg++;
+						if(i>1){
 							T++;
 						}
 						localT++;
-					}else if(i>20 and result[j]==0){
-						FPos++;
 					}
-					if(i>20)all++;
+					if(i>1)all++;
 					localTF++;
         			}
 				//printf("%f\n", (double)localT/localTF);
@@ -121,7 +117,6 @@ int main(int argc, char* argv[]){
 			timeTaken += tmp;
 		}
 		printf("%f\n%f\n", timeTaken, (double)T/all);
-		printf("%f\n", (TPos*2.0)/(2.0*TPos+TNeg+FPos));
 	}
 	else if(argv[1][0]=='1'){
 		DecisionTree* test;
@@ -133,9 +128,9 @@ int main(int argc, char* argv[]){
 		long maxSize = 0;
 		for(i = 1; i<944; i++){
 			//printf("%ld\n", i);
-			data = (double**)malloc(no*sizeof(double*));
-			result = (long*)malloc(no*sizeof(long));
-			c=0;
+				data = (double**)malloc(no*sizeof(double*));
+				result = (long*)malloc(no*sizeof(long));
+				c=0;
         		infile.open(str+std::to_string(i)+str2, std::ios::in);
 			while(1){
 				data[c] = (double*)malloc((feature+1)*sizeof(double));
@@ -161,22 +156,14 @@ int main(int argc, char* argv[]){
 				for(j=0; j<c; j++){
 					if(test->Test(data[j], test->DTree)==result[j]){
 						localT++;
-						if(i>20){
-							if(result[j]==1)TPos++;
-							else TNeg++;
-						}
-					}else{
-						if(i>20){
-							if(result[j]==0)FPos++;
-						}
 					}
 					localAll++;
         			}
-				if(i>20){
+				if(i>1){
 					all+=localAll;
 					T+=localT;
 				}
-				//printf("%f, %f\n", (double)localT/localAll, test->increaseRate);
+				//printf("%f\n", (double)localT/localAll);
 			if(i==943)continue;
 			start = clock();
 			test->fit(data, result, c);
@@ -184,8 +171,6 @@ int main(int argc, char* argv[]){
 			timeTaken += tmp;
 			if (maxSize<test->DTree->size)maxSize=test->DTree->size;
 		}
-		printf("%ld\n", maxSize);
 		printf("%f\n%f\n", timeTaken, (double)T/all);
-		printf("%f\n", (TPos*2.0)/(2.0*TPos+TNeg+FPos));
 	}
 }

@@ -1,6 +1,3 @@
-runCART:
-	python3 CART.py
-
 runOnce:
 	python3 HoeffdingTree.py Synth 1 0
 	python3 HoeffdingTree.py Synth 2 0

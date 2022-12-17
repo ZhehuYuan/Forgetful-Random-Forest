@@ -56,7 +56,7 @@ int main(int argc, char* argv[]){
         data = (double***)malloc(no*sizeof(double**));
         result = (long**)malloc(no*sizeof(long*));
         std::ifstream infile;
-	const char* name[13] = {"synthetic_100_1", "synthetic_100_3", "synthetic_100_5", "synthetic_50_1", "synthetic_50_3", "synthetic_50_5", "synthetic_20_1", "synthetic_20_3", "synthetic_20_5", "5_synthetic_50_3", "10_synthetic_50_3", "15_synthetic_50_3", "20_synthetic_50_3"}; 
+	const char* name[18] = {"gauss_synthetic_100_1", "gauss_synthetic_100_3", "gauss_synthetic_100_5", "gauss_synthetic_50_1", "gauss_synthetic_50_3", "gauss_synthetic_50_5", "gauss_synthetic_20_1", "gauss_synthetic_20_3", "gauss_synthetic_20_5", "synthetic_100_1", "synthetic_100_3", "synthetic_100_5", "synthetic_50_1", "synthetic_50_3", "synthetic_50_5", "synthetic_20_1", "synthetic_20_3", "synthetic_20_5"}; 
 	std::string fname = name[atoi(argv[2])];
 	std::string dname = "Synthetic/";
 	infile.open(dname+fname, std::ios::in);
@@ -81,13 +81,13 @@ int main(int argc, char* argv[]){
         if(argv[1][0]=='0'){
 		RandomForest* test;
                 if(atof(argv[3])==0){
-        		test = new RandomForest(10, 8, feature, isSparse, ir, noClasses, Evaluation::gini);
+        		test = new RandomForest(20, 8, feature, isSparse, ir, noClasses, Evaluation::gini);
                 }else{
-        		test = new RandomForest(10, 8, feature, isSparse, atof(argv[3]), noClasses, Evaluation::gini);
+        		test = new RandomForest(80, 8, feature, isSparse, atof(argv[3]), noClasses, Evaluation::gini, true);
                 }
 
         	for(kkk=0;kkk<no;kkk++){
-                	if(kkk>=20){
+                	//if(kkk>=20){
 				if(kkk == no-1){
 					for(i=0; i<size-kkk*frag;i++){
                 				if(test->Test(data[kkk][i])==result[kkk][i])T++;
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]){
 						TF++;
 					}
 				}
-			}
+			//}
 			if(kkk!=no-1){
 				start = clock();
 				test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
@@ -132,6 +132,7 @@ int main(int argc, char* argv[]){
                 		test->fit(data[kkk], result[kkk], std::min(frag, size-frag*kkk));
 				t+=(double)(clock()-start)/CLOCKS_PER_SEC;
                 		if(test->DTree->size>maxSize)maxSize=test->DTree->size;
+				printf("%f\n", test->increaseRate);
 			}
 		}
 	}

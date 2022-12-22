@@ -41,21 +41,21 @@ make tune
 
 ## Options
 Running "test.out", you may have a few options
-#####-R
+##### -R
 Running random forest, while the default setting is running decision tree.
-#####-B
+##### -B
 Running random forest with bagging, while the default setting is running without bagging. It will be ignored if you are running decision tree.
-#####-nXX
+##### -nXX
 Running random forest with nTree=XX, while the default setting is running with nTree=20. XX must be an integer. It will be ignored if you are running decision tree.
-#####-iXX
+##### -iXX
 Running random forest or decision tree with initial iRate=XX, while the default setting is running with initial iRate=0.3. XX could be either an integer or a float. It will be ignored if you are running decision tree.
-#####-E
+##### -E
 Running random forest or decision tree on Electricity Dataset.
-#####-P
+##### -P
 Running random forest or decision tree on Phing Dataset.
-#####-G
+##### -G
 Running random forest or decision tree on Gradual Synthetic Dataset.
-#####-A
+##### -A
 Running random forest or decision tree on Abrupto Synthetic Dataset.
-#####-C
+##### -C
 Running random forest or decision tree on Forest Cover Type Dataset.

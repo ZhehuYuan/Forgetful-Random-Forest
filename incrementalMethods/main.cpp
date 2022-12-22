@@ -92,23 +92,23 @@ int main(int argc, char* argv[]){
 	}
 	
 	if(elec){
-		printf("Electricity:");
+		printf("Electricity:\n");
 		mainElec(rf, ir, bagging, nTree);	
 	}
-	if(phi){
-		printf("Phishing:");
+	else if(phi){
+		printf("Phishing:\n");
 		mainPhi(rf, ir, bagging, nTree);	
 	}
-	if(gradual){
-		printf("Gradual Synthetic:");
+	else if(gradual){
+		printf("Gradual Synthetic:\n");
 		mainMix(true, rf, ir, bagging, nTree);	
 	}
-	if(abrupt){
-		printf("Abrupt Synthetic:");
+	else if(abrupt){
+		printf("Abrupt Synthetic:\n");
 		mainMix(false, rf, ir, bagging, nTree);	
 	}
-	if(cov){
-		printf("Forest Cover:");
+	else if(cov){
+		printf("Forest Cover:\n");
 		mainCov(rf, ir, bagging, nTree);	
 	}
 }

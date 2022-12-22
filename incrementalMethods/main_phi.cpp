@@ -76,7 +76,6 @@ void mainPhi(bool rf, double ir, bool bagging, long nTree){
         	test = new RandomForest(nTree, feature, isSparse, ir, noClasses, Evaluation::entropy, bagging);
         	for(kkk=0;kkk<=no;kkk++){
 			long localT=0;
-			printf("%ld\n", kkk);
 			if(kkk!=no){
 				if(kkk>=5)total += frag;
 				for(i=0; i<frag; i++){

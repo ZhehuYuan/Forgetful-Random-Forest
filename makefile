@@ -5,13 +5,25 @@ tune:
 	g++ -g -std=c++14 -IincrementalMethods incrementalMethods/main_Synth.cpp incrementalMethods/incrementalDecisionTree.cpp incrementalMethods/Evaluation.cpp incrementalMethods/RF.cpp -o tune.out
 
 runDT:
-	./test.out -EPGAC
+	./test.out -E
+	./test.out -P
+	./test.out -G
+	./test.out -A
+	./test.out -C
 
 runRFNoBagging:
-	./test.out -EPGACR
+	./test.out -ER
+	./test.out -PR
+	./test.out -GR
+	./test.out -AR
+	./test.out -CR
 
 runRFBagging:
-	./test.out -EPGACRB
+	./test.out -ERB
+	./test.out -PRB
+	./test.out -GRB
+	./test.out -ARB
+	./test.out -CRB
 
 runCompare:
 	python3 compareMethods/HoeffdingTree.py Synth 1 0

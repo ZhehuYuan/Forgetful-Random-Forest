@@ -30,22 +30,27 @@ runCompare:
 	python3 compareMethods/HoeffdingTree.py Synth 2 0
 	python3 compareMethods/HoeffdingTree.py Synth 3 0
 	python3 compareMethods/HoeffdingTree.py Synth 4 0
+	python3 compareMethods/HoeffdingTree.py Synth 5 0
 	python3 compareMethods/HoeffdingTree.py Synth 1 1
 	python3 compareMethods/HoeffdingTree.py Synth 2 1
 	python3 compareMethods/HoeffdingTree.py Synth 3 1
 	python3 compareMethods/HoeffdingTree.py Synth 4 1
+	python3 compareMethods/HoeffdingTree.py Synth 5 1
 	python3 compareMethods/HoeffdingTree.py phi 1
 	python3 compareMethods/HoeffdingTree.py phi 2
 	python3 compareMethods/HoeffdingTree.py phi 3
 	python3 compareMethods/HoeffdingTree.py phi 4
+	python3 compareMethods/HoeffdingTree.py phi 5
 	python3 compareMethods/HoeffdingTree.py Elec 1
 	python3 compareMethods/HoeffdingTree.py Elec 2
 	python3 compareMethods/HoeffdingTree.py Elec 3
 	python3 compareMethods/HoeffdingTree.py Elec 4
+	python3 compareMethods/HoeffdingTree.py Elec 5
 	python3 compareMethods/HoeffdingTree.py covtype 1
 	python3 compareMethods/HoeffdingTree.py covtype 2
 	python3 compareMethods/HoeffdingTree.py covtype 3
 	python3 compareMethods/HoeffdingTree.py covtype 4
+	python3 compareMethods/HoeffdingTree.py covtype 5
 
 clear:
 	rm ./*.out

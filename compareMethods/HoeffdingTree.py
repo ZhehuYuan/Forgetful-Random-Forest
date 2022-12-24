@@ -8,6 +8,7 @@ from skmultiflow.trees import iSOUPTreeRegressor
 from skmultiflow.trees import StackedSingleTargetHoeffdingTreeRegressor
 from skmultiflow.meta import AdaptiveRandomForestClassifier
 from skmultiflow.data import RegressionGenerator
+from sklearn.tree import DecisionTreeClassifier
 import joblib
 import sys
 from sklearn import svm
@@ -22,6 +23,8 @@ def Synth(modelID, dataId):
         ht = iSOUPTreeRegressor(max_byte_size=200*1024*1024*1024, leaf_prediction="adaptive")
     elif modelID==4:
         ht = AdaptiveRandomForestClassifier(100, max_byte_size=200*1024*1024*1024)
+    elif modelID==5:
+        cart = DecisionTreeClassifier()
     else:
         print("wrong model ID\n")
         exit(0)
@@ -66,6 +69,17 @@ def Synth(modelID, dataId):
     TF = 0
     start = 0
     gap = 100
+    
+    if modelID==5:
+        cart.fit(data[:1000], result[:1000])
+        pred = cart.predict(data[1000:])
+        for i in range(length-1000):
+            TF+=1
+            if pred[i]==result[i+1000]:
+                T+=1
+        print("accuracy: "+str(T/TF))
+        return
+
     while start<length:
         end = min(start+gap, length)
         X = data[start:end]
@@ -112,6 +126,8 @@ def CovType(modelID):
         ht = iSOUPTreeRegressor(max_byte_size=200*1024*1024*1024, leaf_prediction="adaptive")
     elif modelID==4:
         ht = AdaptiveRandomForestClassifier(100, max_byte_size=200*1024*1024*1024)
+    elif modelID==5:
+        cart = DecisionTreeClassifier()
     else:
         print("wrong model ID\n")
         exit(0)
@@ -139,6 +155,17 @@ def CovType(modelID):
     TF = 0
     start = 0
     gap = 400
+    
+    if modelID==5:
+        cart.fit(data[:24000], result[:24000])
+        pred = cart.predict(data[24000:])
+        for i in range(length-24000):
+            TF+=1
+            if pred[i]==result[i+24000]:
+                T+=1
+        print("accuracy: "+str(T/TF))
+        return
+    
     while start<length:
         end = min(start+gap, length)
         X = data[start:end]
@@ -186,6 +213,8 @@ def Elec(modelID):
         ht = iSOUPTreeRegressor(max_byte_size=200*1024*1024*1024, leaf_prediction="adaptive")
     elif modelID==4:
         ht = AdaptiveRandomForestClassifier(100, max_byte_size=200*1024*1024*1024)
+    elif modelID==5:
+        cart = DecisionTreeClassifier()
     else:
         print("wrong model ID\n")
         exit(0)
@@ -217,6 +246,17 @@ def Elec(modelID):
         if modelID==3:
             data = np.array(data)
             result = np.array(result)
+        if modelID==5:
+            if ii==1:
+                cart=DecisionTreeClassifier()
+                cart.fit(data, result)
+            else:
+                TF+=len(result)
+                pred = cart.predict(data)
+                for i in range(len(result)):
+                    if pred[i]==result[i]:
+                        T+=1
+            continue
         if ii!=1:
             x = ht.predict(data)
             localT = 0
@@ -245,7 +285,7 @@ def Elec(modelID):
             t1 = time.time()
             ht.partial_fit(data, result)
             t += time.time()-t1
-    modelID = ("", "HoeffdingTree", "HoeffdingAdaptiveTree", "iSOUPTree", "AdaptiveRandomForest")[modelID]
+    modelID = ("", "HoeffdingTree", "HoeffdingAdaptiveTree", "iSOUPTree", "AdaptiveRandomForest", "train-once")[modelID]
     dataID = "Electricity"
     print(dataID+" "+modelID+ ":\n time: "+str(t)+" second\n accuracy: "+str(T/TF))
 
@@ -279,6 +319,8 @@ def Phishing(modelID):
         ht = iSOUPTreeRegressor(max_byte_size=200*1024*1024*1024, leaf_prediction="adaptive")
     elif modelID==4:
         ht = AdaptiveRandomForestClassifier(100, max_byte_size=200*1024*1024*1024)
+    elif modelID==5:
+        cart = DecisionTreeClassifier()
     else:
         print("wrong model ID\n")
         exit(0)
@@ -293,6 +335,17 @@ def Phishing(modelID):
     TPos = 0
     FNeg = 0
     FPos = 0
+
+    if modelID==5:
+        cart.fit(data[:500], result[:500])
+        pred = cart.predict(data[500:])
+        for i in range(11055-500):
+            TF+=1
+            if pred[i]==result[i+500]:
+                T+=1
+        print("accuracy: "+str(T/TF))
+        return
+
     while start<length:
         end = min(start+gap, length)
         X = data[start:end]

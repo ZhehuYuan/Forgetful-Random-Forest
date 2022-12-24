@@ -20,7 +20,8 @@ https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html
 
 ### Run Experiment
 
-#### Run Forgetful Methods
+#### Compile and Run Forgetful Methods
+"test.out" will be the output of compiling.
 ```
 make
 make runDT

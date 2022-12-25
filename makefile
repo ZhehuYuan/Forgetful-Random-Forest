@@ -10,6 +10,7 @@ runDT:
 	./test.out -G
 	./test.out -A
 	./test.out -C
+	./test.out -O
 
 runRFNoBagging:
 	./test.out -ER
@@ -17,6 +18,7 @@ runRFNoBagging:
 	./test.out -GR
 	./test.out -AR
 	./test.out -CR
+	./test.out -OR
 
 runRFBagging:
 	./test.out -ERB
@@ -24,6 +26,7 @@ runRFBagging:
 	./test.out -GRB
 	./test.out -ARB
 	./test.out -CRB
+	./test.out -ORB
 
 runCompare:
 	python3 compareMethods/HoeffdingTree.py Synth 1 0
@@ -51,6 +54,11 @@ runCompare:
 	python3 compareMethods/HoeffdingTree.py covtype 3
 	python3 compareMethods/HoeffdingTree.py covtype 4
 	python3 compareMethods/HoeffdingTree.py covtype 5
+	python3 compareMethods/HoeffdingTree.py Pow 1
+	python3 compareMethods/HoeffdingTree.py Pow 2
+	python3 compareMethods/HoeffdingTree.py Pow 3
+	python3 compareMethods/HoeffdingTree.py Pow 4
+	python3 compareMethods/HoeffdingTree.py Pow 5
 
 clear:
 	rm ./*.out

@@ -1,5 +1,5 @@
 default:
-	g++ -g -std=c++14 -IincrementalMethods incrementalMethods/main.cpp incrementalMethods/main_covtype.cpp incrementalMethods/incrementalDecisionTree.cpp incrementalMethods/Evaluation.cpp incrementalMethods/RF.cpp incrementalMethods/main_phi.cpp incrementalMethods/main_elec.cpp incrementalMethods/main_mixed.cpp -o test.out
+	g++ -g -std=c++14 -IincrementalMethods incrementalMethods/main.cpp incrementalMethods/main_covtype.cpp incrementalMethods/incrementalDecisionTree.cpp incrementalMethods/Evaluation.cpp incrementalMethods/RF.cpp incrementalMethods/main_phi.cpp incrementalMethods/main_elec.cpp incrementalMethods/main_mixed.cpp incrementalMethods/main_power.cpp -o test.out
 
 tune:
 	g++ -g -std=c++14 -IincrementalMethods incrementalMethods/main_Synth.cpp incrementalMethods/incrementalDecisionTree.cpp incrementalMethods/Evaluation.cpp incrementalMethods/RF.cpp -o tune.out

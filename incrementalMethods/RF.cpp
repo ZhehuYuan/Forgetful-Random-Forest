@@ -67,6 +67,7 @@ RandomForest::RandomForest(long mTree, long feature, int* s, double forg, long n
 	noClasses = noC;
 	e = eval;
 	minF = floor(sqrt((double)f))+2;
+	if(minF>f)minF=f;
 	DTrees = (DecisionTree**)malloc(mTree*sizeof(DecisionTree*));
 	for(i=0; i<maxTree; i++){
 		DTrees[i] = new DecisionTree(f, sparse, forget, minF+rand()%(f+1-minF), noClasses, e);

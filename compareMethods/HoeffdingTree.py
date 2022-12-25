@@ -398,6 +398,94 @@ def Phishing(modelID):
     print(" Precision: "+str(TPos/(TPos+FPos)))
     print(" Recall: "+str(TPos/(TPos+FNeg)))
 
+def Power(modelID):
+    if modelID==1:
+        ht = HoeffdingTreeClassifier(leaf_prediction="nba", max_byte_size=200*1024*1024*1024)
+    elif modelID==2:
+        ht = HoeffdingAdaptiveTreeClassifier(leaf_prediction="nb", split_confidence=0.0001, max_byte_size=200*1024*1024*1024)
+    elif modelID==3:
+        ht = iSOUPTreeRegressor(max_byte_size=200*1024*1024*1024, leaf_prediction="adaptive")
+    elif modelID==4:
+        ht = AdaptiveRandomForestClassifier(100, max_byte_size=200*1024*1024*1024)
+    elif modelID==5:
+        cart = DecisionTreeClassifier()
+    else:
+        print("wrong model ID\n")
+        exit(0)
+    
+    f = open("./power/powersupply.txt", "r")
+    data = []
+    result = []
+    for line in f:
+        if line=="\n" or len(line)<5:
+            continue
+        data.append([])
+        line = line.replace("\n", "")
+        line = line.split(" ")
+        line = line[:3]
+        for i in range(len(line)-1):
+            data[-1].append(float(line[i]))
+        if modelID==3:
+            result.append([1.0 if int(float(line[-1]))==i else 0.0 for i in range(24)])
+        else:
+            result.append(int(float(line[-1])))
+    f.close()
+    
+    t = 0.0
+    length = 29928
+    T = 0
+    TF = 0
+    start = 0
+    gap = 100
+    
+    if modelID==5:
+        cart.fit(data[:1000], result[:1000])
+        pred = cart.predict(data[1000:])
+        for i in range(length-1000):
+            TF+=1
+            if pred[i]==result[i+1000]:
+                T+=1
+        print("accuracy: "+str(T/TF))
+        return
+    
+    while start<length:
+        end = min(start+gap, length)
+        X = data[start:end]
+        y = result[start:end]
+        if start!=0:
+            localT = 0
+            localTF = 0
+            for i in range(start, end):
+                if start >= 10*gap:
+                    TF+=1
+                localTF+=1
+                x = ht.predict(np.array([data[i]]))[0]
+                if modelID == 3:
+                    x = x.tolist()
+                    x=x.index(max(x))
+                    if x == result[i].index(max(result[i])):
+                        if start >= 10*gap:
+                            T+=1
+                        localT+=1
+                else:
+                    if x == result[i]:
+                        if start >= 10*gap:
+                            T+=1
+                        localT+=1
+            #f.write(str(localT/localTF))
+            #f.write("\n")
+        if(end!=length):
+            t1 = time.time()
+            if modelID==3:
+                ht.partial_fit(np.array(X), np.array(y))
+            else:
+                ht.partial_fit(np.array(X), np.array(y))
+            t+=time.time()-t1
+        start = end
+    modelID = ("", "HoeffdingTree", "HoeffdingAdaptiveTree", "iSOUPTree", "AdaptiveRandomForest")[modelID]
+    dataID = "Power"
+    print(dataID+" "+modelID+ ":\n time: "+str(t)+" second\n accuracy: "+str(T/TF))
+
 if __name__=="__main__":
     dataset = sys.argv[1]
     modelID = int(sys.argv[2])
@@ -409,5 +497,7 @@ if __name__=="__main__":
         Phishing(modelID)
     elif dataset=="Elec":
         Elec(modelID)
+    elif dataset=="Pow":
+        Power(modelID)
     else:
         print("wrong dataset\n")

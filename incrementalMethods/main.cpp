@@ -5,7 +5,7 @@
 enum BUFF {None, nTree, IR};
 
 int main(int argc, char* argv[]){
-	bool elec=false, phi=false, gradual=false, abrupt=false, cov=false;
+	bool elec=false, phi=false, gradual=false, abrupt=false, cov=false, pow=false;
 	bool rf = false;
 	bool bagging = false;
 	long nTree = 20;
@@ -47,6 +47,9 @@ int main(int argc, char* argv[]){
 							break;
 						case 'P':
 							phi=true;
+							break;
+						case 'O':
+							pow=true;
 							break;
 						case 'G':
 							gradual=true;
@@ -110,5 +113,8 @@ int main(int argc, char* argv[]){
 	else if(cov){
 		printf("Forest Cover:\n");
 		mainCov(rf, ir, bagging, nTree);	
+	}else if(pow){
+		printf("Power Supply:\n");
+		mainPow(rf, ir, bagging, nTree);	
 	}
 }
